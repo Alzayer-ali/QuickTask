@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Modern squircle card container in safe 66dp zone (center (54,54)) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M37,27 C31.48,27 27,31.48 27,37 L27,71 C27,76.52 31.48,81 37,81 L71,81 C76.52,81 81,76.52 81,71 L81,37 C81,31.48 76.52,27 71,27 Z" />
+    
+    <!-- Modern pill indicator -->
+    <path
+        android:fillColor="#EADDFF"
+        android:pathData="M36,36 L60,36 C61.66,36 63,37.34 63,39 C63,40.66 61.66,42 60,42 L36,42 C34.34,42 33,40.66 33,39 C33,37.34 34.34,36 36,36 Z" />
+    
+    <!-- Second pill indicator -->
+    <path
+        android:fillColor="#F3EDF7"
+        android:pathData="M36,46 L50,46 C51.66,46 53,47.34 53,49 C53,50.66 51.66,52 50,52 L36,52 C34.34,52 33,50.66 33,49 C33,47.34 34.34,46 36,46 Z" />
+
+    <!-- Bold circular check badge -->
+    <path
+        android:fillColor="#6750A4"
+        android:pathData="M65,52 C71.63,52 77,57.37 77,64 C77,70.63 71.63,76 65,76 C58.37,76 53,70.63 53,64 C53,57.37 58.37,52 65,52 Z" />
+
+    <!-- Sharp white checkmark inside badge -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60.8,63.8 L59.4,62.4 C58.8,61.8 57.8,61.8 57.2,62.4 C56.6,63.0 56.6,64.0 57.2,64.6 L60.2,67.6 C60.8,68.2 61.8,68.2 62.4,67.6 L72.8,57.2 C73.4,56.6 73.4,55.6 72.8,55.0 C72.2,54.4 71.2,54.4 70.6,55.0 L60.8,63.8 Z" />
+</vector>

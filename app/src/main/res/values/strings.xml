@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Quick Task</string>
+    <string name="quick_capture_title">Quick Capture</string>
+    <string name="task_title_hint">What needs to be done?</string>
+    <string name="task_note_hint">Add details or notes (optional)</string>
+    <string name="save_task">Save Task</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="due_date">Due Date</string>
+    <string name="due_time">Due Time</string>
+    <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
+    <string name="no_date">No Date</string>
+    <string name="search_tasks">Search tasks…</string>
+    <string name="all_tasks">All</string>
+    <string name="filter_today">Today</string>
+    <string name="filter_upcoming">Upcoming</string>
+    <string name="filter_high_priority">High Priority</string>
+    <string name="filter_completed">Completed</string>
+    <string name="empty_tasks_title">No tasks here</string>
+    <string name="empty_tasks_subtitle">Tap + or trigger Quick Capture to add a task</string>
+    <string name="task_saved">Task saved</string>
+    <string name="task_deleted">Task deleted</string>
+    <string name="undo">Undo</string>
+    <string name="automation_guide_title">External Automation (MacroDroid / Tasker)</string>
+    <string name="widget_quick_bar_desc">Compact bar with instant add, notification trigger, and task counter</string>
+    <string name="widget_tasks_list_desc">Interactive checklist widget of today\'s tasks with quick add</string>
+    <string name="widget_quick_pill_desc">Minimalist floating card for 1-tap lock-screen quick capture</string>
+</resources>

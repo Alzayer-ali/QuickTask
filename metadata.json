@@ -1,0 +1,6 @@
+{
+  "name": "Quick Task",
+  "description": "Minimalist task management app with lock-screen Quick Capture dialog and main dashboard",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
