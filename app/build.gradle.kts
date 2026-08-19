@@ -46,7 +46,7 @@ android {
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
-    debug { signingConfig = signingConfigs.getByName("debugConfig") }
+    debug { }
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -101,6 +101,7 @@ dependencies {
   // implementation(libs.coil.compose)
   implementation(libs.converter.moshi)
   implementation(libs.firebase.ai)
+  implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
   // Uncomment to use Firestore:
   // implementation(libs.firebase.firestore)
 
