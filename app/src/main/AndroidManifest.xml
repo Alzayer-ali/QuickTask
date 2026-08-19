@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example">
 
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -15,7 +16,7 @@
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
 
     <application
-        android:name=".TaskApplication"
+        android:name="com.example.TaskApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -27,7 +28,7 @@
 
         <!-- Main Dashboard Activity -->
         <activity
-            android:name=".MainActivity"
+            android:name="com.example.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.TaskManager">
@@ -39,7 +40,7 @@
 
         <!-- Quick Capture Floating Dialog Activity (Lock Screen Capable) -->
         <activity
-            android:name=".QuickCaptureActivity"
+            android:name="com.example.QuickCaptureActivity"
             android:exported="true"
             android:label="@string/quick_capture_title"
             android:showWhenLocked="true"
@@ -55,9 +56,9 @@
             </intent-filter>
         </activity>
 
-        <!-- Dedicated Activity to trigger Quick Task Notification and finish immediately without bringing main app to foreground -->
+        <!-- Dedicated Activity to trigger Quick Task Notification -->
         <activity
-            android:name=".SendTaskNotificationActivity"
+            android:name="com.example.SendTaskNotificationActivity"
             android:exported="true"
             android:taskAffinity="com.example.notification.trigger"
             android:launchMode="singleInstance"
@@ -72,7 +73,7 @@
 
         <!-- Quick Task Notification Receiver for direct text reply -->
         <receiver
-            android:name=".notification.TaskNotificationReceiver"
+            android:name="com.example.notification.TaskNotificationReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.example.notification.ACTION_ADD_TASK" />
@@ -81,12 +82,12 @@
 
         <!-- Task Due Date & Time Reminder Receiver -->
         <receiver
-            android:name=".notification.TaskReminderReceiver"
+            android:name="com.example.notification.TaskReminderReceiver"
             android:exported="false" />
 
         <!-- Task Reminder Mark Done Action Receiver -->
         <receiver
-            android:name=".notification.TaskReminderActionReceiver"
+            android:name="com.example.notification.TaskReminderActionReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.example.notification.ACTION_MARK_COMPLETE" />
@@ -95,7 +96,7 @@
 
         <!-- Boot Completed Receiver to Reschedule Reminders -->
         <receiver
-            android:name=".notification.BootCompletedReceiver"
+            android:name="com.example.notification.BootCompletedReceiver"
             android:exported="true"
             android:enabled="true">
             <intent-filter>
@@ -106,7 +107,7 @@
 
         <!-- Widget 1: Quick Bar Widget -->
         <receiver
-            android:name=".widget.QuickBarAppWidgetProvider"
+            android:name="com.example.widget.QuickBarAppWidgetProvider"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -118,7 +119,7 @@
 
         <!-- Widget 2: Tasks List Widget -->
         <receiver
-            android:name=".widget.TasksListAppWidgetProvider"
+            android:name="com.example.widget.TasksListAppWidgetProvider"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -130,13 +131,13 @@
 
         <!-- Widget 2 RemoteViews Service -->
         <service
-            android:name=".widget.TasksWidgetService"
+            android:name="com.example.widget.TasksWidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS"
             android:exported="false" />
 
         <!-- Widget 3: Quick Capture Pill Widget -->
         <receiver
-            android:name=".widget.QuickCapturePillWidgetProvider"
+            android:name="com.example.widget.QuickCapturePillWidgetProvider"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
