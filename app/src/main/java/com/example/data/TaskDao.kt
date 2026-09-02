@@ -10,13 +10,13 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TaskDao {
-    @Query("SELECT * FROM tasks ORDER BY isCompleted ASC, dueDateMillis IS NULL, dueDateMillis ASC, priority DESC, createdAt DESC")
+    @Query("SELECT * FROM tasks ORDER BY isCompleted ASC, dueDateMillis IS NULL, dueDateMillis ASC, CASE priority WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 1 ELSE 0 END DESC, createdAt DESC")
     fun getAllTasks(): Flow<List<TaskEntity>>
 
-    @Query("SELECT * FROM tasks WHERE isCompleted = 0 ORDER BY dueDateMillis IS NULL, dueDateMillis ASC, priority DESC, createdAt DESC")
+    @Query("SELECT * FROM tasks WHERE isCompleted = 0 ORDER BY dueDateMillis IS NULL, dueDateMillis ASC, CASE priority WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 1 ELSE 0 END DESC, createdAt DESC")
     fun getPendingTasks(): Flow<List<TaskEntity>>
 
-    @Query("SELECT * FROM tasks WHERE isCompleted = 0 ORDER BY dueDateMillis IS NULL, dueDateMillis ASC, priority DESC, createdAt DESC")
+    @Query("SELECT * FROM tasks WHERE isCompleted = 0 ORDER BY dueDateMillis IS NULL, dueDateMillis ASC, CASE priority WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 1 ELSE 0 END DESC, createdAt DESC")
     fun getPendingTasksDirect(): List<TaskEntity>
 
     @Query("SELECT COUNT(*) FROM tasks WHERE isCompleted = 0")

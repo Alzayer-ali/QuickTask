@@ -31,7 +31,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.PlaylistAddCheck
+import androidx.compose.material.icons.automirrored.filled.PlaylistAddCheck
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -461,7 +461,7 @@ fun DashboardScreen(
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Icon(
-                                        imageVector = Icons.Default.PlaylistAddCheck,
+                                        imageVector = Icons.AutoMirrored.Filled.PlaylistAddCheck,
                                         contentDescription = null,
                                         modifier = Modifier.size(32.dp),
                                         tint = MaterialTheme.colorScheme.primary

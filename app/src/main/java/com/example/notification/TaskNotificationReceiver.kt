@@ -30,49 +30,54 @@ class TaskNotificationReceiver : BroadcastReceiver() {
                 // Smart parse natural language date, start time, end time, and clean title in 24h format
                 val parsed = SmartTimeParser.parse(rawInput)
 
-                // Insert into database via coroutine
+                // Insert into database via coroutine with goAsync to prevent premature process death
+                val pendingResult = goAsync()
                 CoroutineScope(Dispatchers.IO).launch {
-                    val newTask = TaskEntity(
-                        title = parsed.cleanTitle,
-                        notes = "",
-                        dueDateMillis = parsed.dueDateMillis,
-                        dueTimeHour = parsed.startHour,
-                        dueTimeMinute = parsed.startMinute,
-                        endTimeHour = parsed.endHour,
-                        endTimeMinute = parsed.endMinute,
-                        priority = Priority.MEDIUM,
-                        category = "General",
-                        recurrence = parsed.recurrence
-                    )
-                    repository.insertTask(newTask)
-
-                    // Format time confirmation for user feedback
-                    val scheduleText = if (parsed.dueDateMillis != null) {
-                        val dateFormatted = com.example.util.DateTimeUtils.formatDueDate(
-                            parsed.dueDateMillis,
-                            parsed.startHour,
-                            parsed.startMinute,
-                            parsed.endHour,
-                            parsed.endMinute
+                    try {
+                        val newTask = TaskEntity(
+                            title = parsed.cleanTitle,
+                            notes = "",
+                            dueDateMillis = parsed.dueDateMillis,
+                            dueTimeHour = parsed.startHour,
+                            dueTimeMinute = parsed.startMinute,
+                            endTimeHour = parsed.endHour,
+                            endTimeMinute = parsed.endMinute,
+                            priority = Priority.MEDIUM,
+                            category = "General",
+                            recurrence = parsed.recurrence
                         )
-                        if (parsed.recurrence != com.example.data.RecurrenceType.NONE) {
-                            "$dateFormatted • ${parsed.recurrence.label}"
-                        } else {
-                            dateFormatted
-                        }
-                    } else {
-                        if (parsed.recurrence != com.example.data.RecurrenceType.NONE) {
-                            "No due date • ${parsed.recurrence.label}"
-                        } else {
-                            "No specific due date"
-                        }
-                    }
+                        repository.insertTask(newTask)
 
-                    // Update notification with title and parsed time confirmation
-                    notificationManager.showTaskAddedConfirmation(
-                        taskTitle = parsed.cleanTitle,
-                        scheduleText = scheduleText
-                    )
+                        // Format time confirmation for user feedback
+                        val scheduleText = if (parsed.dueDateMillis != null) {
+                            val dateFormatted = com.example.util.DateTimeUtils.formatDueDate(
+                                parsed.dueDateMillis,
+                                parsed.startHour,
+                                parsed.startMinute,
+                                parsed.endHour,
+                                parsed.endMinute
+                            )
+                            if (parsed.recurrence != com.example.data.RecurrenceType.NONE) {
+                                "$dateFormatted • ${parsed.recurrence.label}"
+                            } else {
+                                dateFormatted
+                            }
+                        } else {
+                            if (parsed.recurrence != com.example.data.RecurrenceType.NONE) {
+                                "No due date • ${parsed.recurrence.label}"
+                            } else {
+                                "No specific due date"
+                            }
+                        }
+
+                        // Update notification with title and parsed time confirmation
+                        notificationManager.showTaskAddedConfirmation(
+                            taskTitle = parsed.cleanTitle,
+                            scheduleText = scheduleText
+                        )
+                    } finally {
+                        pendingResult.finish()
+                    }
                 }
             }
         }

@@ -32,24 +32,35 @@ class TasksListAppWidgetProvider : AppWidgetProvider() {
 
             if (taskId != -1L) {
                 if (taskAction == ACTION_COMPLETE_TASK) {
+                    val pendingResult = goAsync()
+                    val app = context.applicationContext as? com.example.TaskApplication
+                    val repository = app?.repository
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
-                            val db = AppDatabase.getInstance(context)
-                            val task = db.taskDao().getTaskByIdDirect(taskId)
-                            if (task != null) {
-                                val updated = task.copy(
-                                    isCompleted = true,
-                                    completedAt = System.currentTimeMillis()
-                                )
-                                db.taskDao().updateTask(updated)
-                                TaskReminderScheduler(context).cancelReminder(taskId)
-                                WidgetUpdateHelper.updateAllWidgets(context)
-
-                                Handler(Looper.getMainLooper()).post {
-                                    Toast.makeText(context, "Completed: $taskTitle ✓", Toast.LENGTH_SHORT).show()
+                            if (repository != null) {
+                                repository.updateCompletionStatus(taskId, true)
+                            } else {
+                                val db = AppDatabase.getInstance(context)
+                                val task = db.taskDao().getTaskByIdDirect(taskId)
+                                if (task != null) {
+                                    if (task.recurrence != com.example.data.RecurrenceType.NONE) {
+                                        val nextDate = com.example.util.DateTimeUtils.calculateNextRecurrenceDate(task.dueDateMillis, task.recurrence)
+                                        db.taskDao().updateTask(task.copy(dueDateMillis = nextDate, isCompleted = false, completedAt = null))
+                                    } else {
+                                        db.taskDao().updateCompletionStatus(taskId, true, System.currentTimeMillis())
+                                        TaskReminderScheduler(context).cancelReminder(taskId)
+                                    }
+                                    WidgetUpdateHelper.updateAllWidgets(context)
                                 }
                             }
-                        } catch (_: Exception) {}
+
+                            Handler(Looper.getMainLooper()).post {
+                                Toast.makeText(context, "Completed: $taskTitle ✓", Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (_: Exception) {
+                        } finally {
+                            pendingResult.finish()
+                        }
                     }
                 } else if (taskAction == ACTION_OPEN_TASK) {
                     val openAppIntent = Intent(context, MainActivity::class.java).apply {

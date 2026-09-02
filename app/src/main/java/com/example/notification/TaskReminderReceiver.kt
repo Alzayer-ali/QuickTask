@@ -19,6 +19,8 @@ class TaskReminderReceiver : BroadcastReceiver() {
         const val REMINDER_CHANNEL_ID = "task_due_reminders_channel_v1"
         const val REMINDER_CHANNEL_NAME = "Task Due Reminders"
         const val ACTION_MARK_TASK_COMPLETE = "com.example.notification.ACTION_MARK_COMPLETE"
+
+        fun getReminderNotificationId(taskId: Long): Int = 10000 + (taskId % 900000).toInt()
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -80,7 +82,7 @@ class TaskReminderReceiver : BroadcastReceiver() {
             )
             .build()
 
-        notificationManager.notify(taskId.toInt(), notification)
+        notificationManager.notify(getReminderNotificationId(taskId), notification)
     }
 
     private fun createReminderChannel(notificationManager: NotificationManager) {

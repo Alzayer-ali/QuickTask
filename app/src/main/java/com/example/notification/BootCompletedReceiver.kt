@@ -35,6 +35,9 @@ class BootCompletedReceiver : BroadcastReceiver() {
                             }
                         }
                     }
+
+                    // Update all widgets on home screen after boot
+                    com.example.widget.WidgetUpdateHelper.updateAllWidgets(context)
                 } finally {
                     pendingResult.finish()
                 }

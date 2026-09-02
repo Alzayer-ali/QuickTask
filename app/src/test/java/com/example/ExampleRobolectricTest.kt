@@ -15,7 +15,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [36])
+@Config(sdk = [34])
 class ExampleRobolectricTest {
 
     @Test
@@ -104,6 +104,24 @@ class ExampleRobolectricTest {
         assertNotNull(created)
         assertEquals("Test Lockscreen Task", created?.title)
         assertEquals(Priority.HIGH, created?.priority)
+    }
+
+    @Test
+    fun `test priority order is HIGH then MEDIUM then LOW`() = runBlocking {
+        val app = ApplicationProvider.getApplicationContext<TaskApplication>()
+        val repo = app.repository
+
+        val now = System.currentTimeMillis()
+        val lowId = repo.insertTask(TaskEntity(title = "Low Task", dueDateMillis = now, priority = Priority.LOW))
+        val medId = repo.insertTask(TaskEntity(title = "Med Task", dueDateMillis = now, priority = Priority.MEDIUM))
+        val highId = repo.insertTask(TaskEntity(title = "High Task", dueDateMillis = now, priority = Priority.HIGH))
+
+        val tasks = repo.allTasks.first().filter { it.id in listOf(lowId, medId, highId) }
+        assertEquals(3, tasks.size)
+        // HIGH priority must appear first, then MEDIUM, then LOW
+        assertEquals(Priority.HIGH, tasks[0].priority)
+        assertEquals(Priority.MEDIUM, tasks[1].priority)
+        assertEquals(Priority.LOW, tasks[2].priority)
     }
 
     @Test

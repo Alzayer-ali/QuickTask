@@ -125,7 +125,7 @@ fun ThemeSelectionDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    ThemeMode.values().forEach { mode ->
+                    ThemeMode.entries.forEach { mode ->
                         val isSelected = settings.mode == mode
                         FilterChip(
                             selected = isSelected,
@@ -182,7 +182,7 @@ fun ThemeSelectionDialog(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    ThemePalette.values().forEach { palette ->
+                    ThemePalette.entries.forEach { palette ->
                         val isSelected = settings.palette == palette
                         val previewColor = Color(palette.previewColorHex)
 

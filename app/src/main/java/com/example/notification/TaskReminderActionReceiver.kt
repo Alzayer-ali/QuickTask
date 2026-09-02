@@ -23,7 +23,7 @@ class TaskReminderActionReceiver : BroadcastReceiver() {
 
         // Dismiss the reminder notification
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.cancel(taskId.toInt())
+        notificationManager.cancel(TaskReminderReceiver.getReminderNotificationId(taskId))
 
         // Mark task as completed in DB
         val pendingResult = goAsync()

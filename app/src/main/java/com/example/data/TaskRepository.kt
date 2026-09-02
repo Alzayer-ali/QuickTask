@@ -190,9 +190,10 @@ class TaskRepository(
             taskDao.deleteAllTasks()
         }
 
-        // Clean IDs for new insertion if replacing or appending
+        // Clean foreign calendar IDs and reset local IDs if merging
         val preparedTasks = tasks.map { task ->
-            if (replaceExisting) task else task.copy(id = 0, calendarEventId = null, isCalendarSynced = false)
+            if (replaceExisting) task.copy(calendarEventId = null, isCalendarSynced = false)
+            else task.copy(id = 0, calendarEventId = null, isCalendarSynced = false)
         }
 
         taskDao.insertTasks(preparedTasks)

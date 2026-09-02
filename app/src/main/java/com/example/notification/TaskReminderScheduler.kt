@@ -128,5 +128,8 @@ class TaskReminderScheduler(private val context: Context) {
             pendingIntent.cancel()
             Log.d("TaskReminder", "Cancelled reminder for task ID $taskId")
         }
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
+        notificationManager?.cancel(TaskReminderReceiver.getReminderNotificationId(taskId))
     }
 }
