@@ -87,20 +87,41 @@ class DeviceCalendarSyncManager(private val context: Context) {
     /**
      * Calculates start and end timestamps in millis for a task.
      */
-    fun calculateEventTimes(dueDateMillis: Long?, hour: Int?, minute: Int?): Pair<Long, Long> {
+    fun calculateEventTimes(
+        dueDateMillis: Long?,
+        startHour: Int?,
+        startMinute: Int?,
+        endHour: Int? = null,
+        endMinute: Int? = null
+    ): Pair<Long, Long> {
         val calendar = Calendar.getInstance()
         if (dueDateMillis != null) {
             calendar.timeInMillis = dueDateMillis
         }
 
-        if (hour != null && minute != null) {
-            calendar.set(Calendar.HOUR_OF_DAY, hour)
-            calendar.set(Calendar.MINUTE, minute)
+        if (startHour != null && startMinute != null) {
+            calendar.set(Calendar.HOUR_OF_DAY, startHour)
+            calendar.set(Calendar.MINUTE, startMinute)
             calendar.set(Calendar.SECOND, 0)
             calendar.set(Calendar.MILLISECOND, 0)
             val startTime = calendar.timeInMillis
-            // Default event duration: 30 minutes
-            val endTime = startTime + (30 * 60 * 1000L)
+
+            val endTime = if (endHour != null && endMinute != null) {
+                val endCal = Calendar.getInstance().apply {
+                    timeInMillis = dueDateMillis ?: System.currentTimeMillis()
+                    set(Calendar.HOUR_OF_DAY, endHour)
+                    set(Calendar.MINUTE, endMinute)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                if (endCal.timeInMillis < startTime) {
+                    endCal.add(Calendar.DAY_OF_YEAR, 1)
+                }
+                endCal.timeInMillis
+            } else {
+                // Default event duration: 30 minutes
+                startTime + (30 * 60 * 1000L)
+            }
             return Pair(startTime, endTime)
         } else {
             // All-day event start at beginning of day
@@ -126,7 +147,13 @@ class DeviceCalendarSyncManager(private val context: Context) {
         }
 
         val calendarId = getPrimaryCalendarId() ?: return@withContext null
-        val (startTime, endTime) = calculateEventTimes(task.dueDateMillis, task.dueTimeHour, task.dueTimeMinute)
+        val (startTime, endTime) = calculateEventTimes(
+            task.dueDateMillis,
+            task.dueTimeHour,
+            task.dueTimeMinute,
+            task.endTimeHour,
+            task.endTimeMinute
+        )
 
         try {
             val values = ContentValues().apply {
@@ -168,7 +195,13 @@ class DeviceCalendarSyncManager(private val context: Context) {
         val eventId = task.calendarEventId ?: return@withContext false
         if (!hasCalendarPermissions()) return@withContext false
 
-        val (startTime, endTime) = calculateEventTimes(task.dueDateMillis, task.dueTimeHour, task.dueTimeMinute)
+        val (startTime, endTime) = calculateEventTimes(
+            task.dueDateMillis,
+            task.dueTimeHour,
+            task.dueTimeMinute,
+            task.endTimeHour,
+            task.endTimeMinute
+        )
 
         try {
             val values = ContentValues().apply {
@@ -203,12 +236,106 @@ class DeviceCalendarSyncManager(private val context: Context) {
         }
     }
 
+    data class CalendarEventData(
+        val eventId: Long,
+        val title: String,
+        val description: String,
+        val startMillis: Long,
+        val endMillis: Long,
+        val isAllDay: Boolean
+    )
+
+    /**
+     * Reads calendar event details by event ID directly from the device's Calendar provider.
+     */
+    fun getCalendarEvent(eventId: Long): CalendarEventData? {
+        if (!hasCalendarPermissions()) return null
+
+        val projection = arrayOf(
+            CalendarContract.Events._ID,
+            CalendarContract.Events.TITLE,
+            CalendarContract.Events.DESCRIPTION,
+            CalendarContract.Events.DTSTART,
+            CalendarContract.Events.DTEND,
+            CalendarContract.Events.ALL_DAY
+        )
+
+        var cursor: Cursor? = null
+        try {
+            val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+            cursor = context.contentResolver.query(uri, projection, null, null, null)
+            if (cursor != null && cursor.moveToFirst()) {
+                val titleCol = cursor.getColumnIndexOrThrow(CalendarContract.Events.TITLE)
+                val descCol = cursor.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION)
+                val startCol = cursor.getColumnIndexOrThrow(CalendarContract.Events.DTSTART)
+                val endCol = cursor.getColumnIndexOrThrow(CalendarContract.Events.DTEND)
+                val allDayCol = cursor.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)
+
+                val title = cursor.getString(titleCol) ?: ""
+                val desc = cursor.getString(descCol) ?: ""
+                val dtStart = cursor.getLong(startCol)
+                val dtEnd = cursor.getLong(endCol)
+                val allDay = cursor.getInt(allDayCol) == 1
+
+                return CalendarEventData(
+                    eventId = eventId,
+                    title = title,
+                    description = desc,
+                    startMillis = dtStart,
+                    endMillis = dtEnd,
+                    isAllDay = allDay
+                )
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error reading calendar event $eventId", e)
+        } finally {
+            cursor?.close()
+        }
+        return null
+    }
+
+    /**
+     * Checks if a calendar event has been deleted from the device calendar.
+     */
+    fun isEventDeleted(eventId: Long): Boolean {
+        if (!hasCalendarPermissions()) return false
+        var cursor: Cursor? = null
+        try {
+            val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+            cursor = context.contentResolver.query(
+                uri,
+                arrayOf(CalendarContract.Events._ID, CalendarContract.Events.DELETED),
+                null,
+                null,
+                null
+            )
+            if (cursor != null && cursor.moveToFirst()) {
+                val deletedCol = cursor.getColumnIndex(CalendarContract.Events.DELETED)
+                if (deletedCol != -1) {
+                    return cursor.getInt(deletedCol) == 1
+                }
+                return false
+            }
+            return true // Not found means deleted
+        } catch (e: Exception) {
+            return false
+        } finally {
+            cursor?.close()
+        }
+    }
+
     /**
      * Launches the default phone Calendar app with a pre-filled event using Android Intent.
      * Works on ANY Android device without requiring runtime permissions!
      */
     fun launchAddToCalendarIntent(context: Context, task: TaskEntity) {
-        val (startTime, endTime) = calculateEventTimes(task.dueDateMillis, task.dueTimeHour, task.dueTimeMinute)
+        val (startTime, endTime) = calculateEventTimes(
+            task.dueDateMillis,
+            task.dueTimeHour,
+            task.dueTimeMinute,
+            task.endTimeHour,
+            task.endTimeMinute
+        )
 
         val intent = Intent(Intent.ACTION_INSERT).apply {
             data = CalendarContract.Events.CONTENT_URI

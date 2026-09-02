@@ -24,6 +24,7 @@ enum class TaskFilter(val label: String) {
 
 data class DashboardUiState(
     val tasks: List<TaskEntity> = emptyList(),
+    val allTasks: List<TaskEntity> = emptyList(),
     val totalPendingCount: Int = 0,
     val totalCompletedCount: Int = 0,
     val dueTodayCount: Int = 0,
@@ -89,6 +90,7 @@ class MainViewModel(
 
         DashboardUiState(
             tasks = filtered,
+            allTasks = allTasks,
             totalPendingCount = pendingCount,
             totalCompletedCount = completedCount,
             dueTodayCount = todayCount,
@@ -145,6 +147,20 @@ class MainViewModel(
             } else {
                 repository.updateTask(task)
             }
+        }
+    }
+
+    fun restoreTasks(tasks: List<TaskEntity>, replaceExisting: Boolean) {
+        viewModelScope.launch {
+            repository.restoreTasks(tasks, replaceExisting)
+        }
+    }
+
+    fun syncFromCalendar() {
+        viewModelScope.launch {
+            try {
+                repository.syncFromDeviceCalendar()
+            } catch (_: Exception) {}
         }
     }
 

@@ -28,8 +28,17 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE id = :id")
     fun getTaskById(id: Long): Flow<TaskEntity?>
 
+    @Query("SELECT * FROM tasks WHERE id = :id")
+    suspend fun getTaskByIdDirect(id: Long): TaskEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(task: TaskEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTasks(tasks: List<TaskEntity>): List<Long>
+
+    @Query("SELECT * FROM tasks")
+    suspend fun getAllTasksDirect(): List<TaskEntity>
 
     @Update
     suspend fun updateTask(task: TaskEntity)
@@ -39,6 +48,9 @@ interface TaskDao {
 
     @Query("DELETE FROM tasks WHERE id = :id")
     suspend fun deleteTaskById(id: Long)
+
+    @Query("DELETE FROM tasks")
+    suspend fun deleteAllTasks()
 
     @Query("UPDATE tasks SET isCompleted = :isCompleted, completedAt = :completedAt WHERE id = :id")
     suspend fun updateCompletionStatus(id: Long, isCompleted: Boolean, completedAt: Long?)

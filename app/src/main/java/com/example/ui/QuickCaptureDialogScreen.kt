@@ -18,20 +18,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.AddAlert
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.EditCalendar
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Label
+import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -90,8 +88,10 @@ fun QuickCaptureDialogScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val focusRequester = remember { FocusRequester() }
 
+    var isRangeMode by remember { mutableStateOf(state.endTimeHour != null) }
     var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
+    var showStartTimePicker by remember { mutableStateOf(false) }
+    var showEndTimePicker by remember { mutableStateOf(false) }
     var showNotesField by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -102,13 +102,13 @@ fun QuickCaptureDialogScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.4f))
+            .background(Color.Black.copy(alpha = 0.5f))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onDismiss
             )
-            .padding(20.dp),
+            .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
         Card(
@@ -121,11 +121,11 @@ fun QuickCaptureDialogScreen(
                     onClick = { /* Stop propagation */ }
                 )
                 .testTag("quick_capture_dialog_card"),
-            shape = RoundedCornerShape(32.dp),
+            shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
             border = CardDefaults.outlinedCardBorder().copy(
                 brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outlineVariant)
             )
@@ -134,9 +134,9 @@ fun QuickCaptureDialogScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(24.dp)
+                    .padding(22.dp)
             ) {
-                // Clean Minimal Header
+                // Header
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -146,7 +146,7 @@ fun QuickCaptureDialogScreen(
                         text = "QUICK CAPTURE",
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Bold,
-                            letterSpacing = 2.5.sp,
+                            letterSpacing = 2.sp,
                             fontSize = 11.sp
                         ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -167,9 +167,9 @@ fun QuickCaptureDialogScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                // Task Title Field Container
+                // Title
                 OutlinedTextField(
                     value = state.title,
                     onValueChange = { viewModel.onTitleChange(it) },
@@ -184,7 +184,7 @@ fun QuickCaptureDialogScreen(
                         .fillMaxWidth()
                         .focusRequester(focusRequester)
                         .testTag("quick_capture_title_input"),
-                    shape = RoundedCornerShape(20.dp),
+                    shape = RoundedCornerShape(18.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surface,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -195,36 +195,34 @@ fun QuickCaptureDialogScreen(
                     singleLine = false
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // Note/Details toggle or field
+                // Note Field
                 AnimatedVisibility(visible = showNotesField || state.notes.isNotEmpty()) {
-                    Column {
-                        OutlinedTextField(
-                            value = state.notes,
-                            onValueChange = { viewModel.onNotesChange(it) },
-                            placeholder = {
-                                Text(
-                                    text = stringResource(R.string.task_note_hint),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                )
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 4.dp)
-                                .testTag("quick_capture_notes_input"),
-                            shape = RoundedCornerShape(18.dp),
-                            minLines = 2,
-                            maxLines = 4,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                    OutlinedTextField(
+                        value = state.notes,
+                        onValueChange = { viewModel.onNotesChange(it) },
+                        placeholder = {
+                            Text(
+                                text = stringResource(R.string.task_note_hint),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                             )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 6.dp)
+                            .testTag("quick_capture_notes_input"),
+                        shape = RoundedCornerShape(16.dp),
+                        minLines = 2,
+                        maxLines = 4,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                         )
-                    }
+                    )
                 }
 
                 if (!showNotesField && state.notes.isEmpty()) {
@@ -247,26 +245,26 @@ fun QuickCaptureDialogScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-                // Date & Time Grid Selection (Design HTML Pattern)
+                // Date Selection
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Date Tile
                     Surface(
                         onClick = { showDatePicker = true },
-                        shape = RoundedCornerShape(18.dp),
+                        shape = RoundedCornerShape(16.dp),
                         color = MaterialTheme.colorScheme.surface,
                         border = androidx.compose.foundation.BorderStroke(
                             1.dp,
-                            if (state.dueDateMillis != null) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant
+                            if (state.dueDateMillis != null) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant
                         ),
                         modifier = Modifier.weight(1f)
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
@@ -289,116 +287,250 @@ fun QuickCaptureDialogScreen(
                         }
                     }
 
-                    // Time Tile
-                    Surface(
-                        onClick = { showTimePicker = true },
-                        shape = RoundedCornerShape(18.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            if (state.dueTimeHour != null) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant
-                        ),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.AccessTime,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = if (state.dueTimeHour != null) {
-                                    val c = Calendar.getInstance().apply {
-                                        set(Calendar.HOUR_OF_DAY, state.dueTimeHour ?: 0)
-                                        set(Calendar.MINUTE, state.dueTimeMinute ?: 0)
-                                    }
-                                    java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault()).format(c.time)
-                                } else "Pick Time",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = if (state.dueTimeHour != null) FontWeight.SemiBold else FontWeight.Normal
-                                ),
-                                color = if (state.dueTimeHour != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // Date Presets Row
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
                     val isToday = DateTimeUtils.isDueToday(state.dueDateMillis)
                     val isTomorrow = state.dueDateMillis == DateTimeUtils.getTomorrowStartMillis()
-                    val isNoDate = state.dueDateMillis == null
 
                     FilterChip(
                         selected = isToday,
                         onClick = { viewModel.onDueDateChange(DateTimeUtils.getTodayStartMillis()) },
-                        label = { Text("Today", fontSize = 12.sp) },
+                        label = { Text("Today", fontSize = 11.sp) },
                         shape = RoundedCornerShape(50),
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                        ),
-                        modifier = Modifier.testTag("date_chip_today")
+                        )
                     )
 
                     FilterChip(
                         selected = isTomorrow,
                         onClick = { viewModel.onDueDateChange(DateTimeUtils.getTomorrowStartMillis()) },
-                        label = { Text("Tomorrow", fontSize = 12.sp) },
+                        label = { Text("Tomorrow", fontSize = 11.sp) },
                         shape = RoundedCornerShape(50),
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                        ),
-                        modifier = Modifier.testTag("date_chip_tomorrow")
-                    )
-
-                    if (state.dueDateMillis != null) {
-                        FilterChip(
-                            selected = false,
-                            onClick = {
-                                viewModel.onDueDateChange(null)
-                                viewModel.onDueTimeChange(null, null)
-                            },
-                            label = { Text("Clear Date", fontSize = 12.sp) },
-                            shape = RoundedCornerShape(50),
-                            modifier = Modifier.testTag("date_chip_none")
                         )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Time Mode Section Header
+                Text(
+                    text = "TIME (24-HOUR SYSTEM)",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.2.sp,
+                        fontSize = 10.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Mode switch segmented tabs
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(3.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Surface(
+                        onClick = {
+                            isRangeMode = false
+                            viewModel.onEndTimeChange(null, null)
+                        },
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (!isRangeMode) MaterialTheme.colorScheme.primary else Color.Transparent,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(vertical = 9.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Single Time",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = if (!isRangeMode) FontWeight.Bold else FontWeight.Medium
+                                ),
+                                color = if (!isRangeMode) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Surface(
+                        onClick = {
+                            isRangeMode = true
+                            if (state.dueTimeHour == null) {
+                                val now = Calendar.getInstance()
+                                viewModel.onDueTimeChange(now.get(Calendar.HOUR_OF_DAY), 0)
+                            }
+                            if (state.endTimeHour == null) {
+                                val endH = ((state.dueTimeHour ?: 12) + 1).coerceAtMost(23)
+                                viewModel.onEndTimeChange(endH, state.dueTimeMinute ?: 0)
+                            }
+                        },
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (isRangeMode) MaterialTheme.colorScheme.primary else Color.Transparent,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(vertical = 9.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Start → End",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = if (isRangeMode) FontWeight.Bold else FontWeight.Medium
+                                ),
+                                color = if (isRangeMode) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (!isRangeMode) {
+                    // Single Time Button
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            onClick = { showStartTimePicker = true },
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                if (state.dueTimeHour != null) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant
+                            ),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AccessTime,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = if (state.dueTimeHour != null) {
+                                        DateTimeUtils.format24Hour(state.dueTimeHour!!, state.dueTimeMinute ?: 0)
+                                    } else "Set Time (24h)",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = if (state.dueTimeHour != null) FontWeight.SemiBold else FontWeight.Normal
+                                    ),
+                                    color = if (state.dueTimeHour != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
+                                )
+                            }
+                        }
+
+                        if (state.dueTimeHour != null) {
+                            FilterChip(
+                                selected = false,
+                                onClick = {
+                                    viewModel.onDueTimeChange(null, null)
+                                },
+                                label = { Text("Clear", fontSize = 11.sp) },
+                                shape = RoundedCornerShape(50)
+                            )
+                        }
+                    }
+                } else {
+                    // Start & End Range Buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Start Time
+                        Surface(
+                            onClick = { showStartTimePicker = true },
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                if (state.dueTimeHour != null) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant
+                            ),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                                Text(
+                                    text = "START TIME",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = if (state.dueTimeHour != null) {
+                                        DateTimeUtils.format24Hour(state.dueTimeHour!!, state.dueTimeMinute ?: 0)
+                                    } else "Set Start",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                    color = if (state.dueTimeHour != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = "to",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
+                        )
+
+                        // End Time
+                        Surface(
+                            onClick = { showEndTimePicker = true },
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                if (state.endTimeHour != null) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant
+                            ),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                                Text(
+                                    text = "END TIME",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = if (state.endTimeHour != null) {
+                                        DateTimeUtils.format24Hour(state.endTimeHour!!, state.endTimeMinute ?: 0)
+                                    } else "Set End",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                    color = if (state.endTimeHour != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Priority Row
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "PRIORITY",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.2.sp,
-                            fontSize = 10.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                // Priority
+                Text(
+                    text = "PRIORITY",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.2.sp,
+                        fontSize = 10.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -415,12 +547,12 @@ fun QuickCaptureDialogScreen(
                         FilterChip(
                             selected = isSelected,
                             onClick = { viewModel.onPriorityChange(p) },
-                            label = { Text(p.label, fontSize = 12.sp) },
+                            label = { Text(p.label, fontSize = 11.sp) },
                             shape = RoundedCornerShape(50),
                             leadingIcon = {
                                 Box(
                                     modifier = Modifier
-                                        .size(8.dp)
+                                        .size(6.dp)
                                         .clip(CircleShape)
                                         .background(if (isSelected) MaterialTheme.colorScheme.onPrimary else color)
                                 )
@@ -428,60 +560,63 @@ fun QuickCaptureDialogScreen(
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = MaterialTheme.colorScheme.primary,
                                 selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            modifier = Modifier.testTag("priority_chip_${p.name.lowercase()}")
+                            )
                         )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Category Row
+                // Recurrence
+                Text(
+                    text = "RECURRENCE",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.2.sp,
+                        fontSize = 10.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
                 ) {
-                    Text(
-                        text = "CATEGORY",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.2.sp,
-                            fontSize = 10.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    val categories = listOf("General", "Work", "Personal", "Urgent", "Ideas")
-                    categories.forEach { cat ->
-                        val isSelected = state.category == cat
+                    com.example.data.RecurrenceType.entries.forEach { rec ->
+                        val isSelected = state.recurrence == rec
                         FilterChip(
                             selected = isSelected,
-                            onClick = { viewModel.onCategoryChange(cat) },
-                            label = { Text(cat, fontSize = 12.sp) },
+                            onClick = { viewModel.onRecurrenceChange(rec) },
+                            label = { Text(rec.label, fontSize = 11.sp) },
                             shape = RoundedCornerShape(50),
+                            leadingIcon = if (rec != com.example.data.RecurrenceType.NONE) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Default.Repeat,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(11.dp),
+                                        tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            } else null,
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = MaterialTheme.colorScheme.primary,
                                 selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            modifier = Modifier.testTag("category_chip_${cat.lowercase()}")
+                            )
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                // Action Pill Buttons (Design HTML pattern)
+                // Action Buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     OutlinedButton(
@@ -561,41 +696,83 @@ fun QuickCaptureDialogScreen(
         }
     }
 
-    // Material 3 Time Picker Dialog
-    if (showTimePicker) {
+    // Material 3 24-Hour Start Time Picker Dialog
+    if (showStartTimePicker) {
         val initialCal = Calendar.getInstance()
-        val timePickerState = rememberTimePickerState(
+        val startTimePickerState = rememberTimePickerState(
             initialHour = state.dueTimeHour ?: initialCal.get(Calendar.HOUR_OF_DAY),
-            initialMinute = state.dueTimeMinute ?: initialCal.get(Calendar.MINUTE),
-            is24Hour = false
+            initialMinute = state.dueTimeMinute ?: 0,
+            is24Hour = true
         )
 
-        DatePickerDialog(
-            onDismissRequest = { showTimePicker = false },
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showStartTimePicker = false },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.onDueTimeChange(timePickerState.hour, timePickerState.minute)
-                        showTimePicker = false
+                        viewModel.onDueTimeChange(startTimePickerState.hour, startTimePickerState.minute)
+                        showStartTimePicker = false
                     }
                 ) {
                     Text("OK")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showTimePicker = false }) {
+                TextButton(onClick = { showStartTimePicker = false }) {
                     Text("Cancel")
                 }
+            },
+            title = {
+                Text(
+                    text = if (isRangeMode) "Select Start Time (24h)" else "Select Time (24h)",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            },
+            text = {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    TimePicker(state = startTimePickerState)
+                }
             }
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                TimePicker(state = timePickerState)
+        )
+    }
+
+    // Material 3 24-Hour End Time Picker Dialog
+    if (showEndTimePicker) {
+        val initialCal = Calendar.getInstance()
+        val endTimePickerState = rememberTimePickerState(
+            initialHour = state.endTimeHour ?: (((state.dueTimeHour ?: initialCal.get(Calendar.HOUR_OF_DAY)) + 1) % 24),
+            initialMinute = state.endTimeMinute ?: (state.dueTimeMinute ?: 0),
+            is24Hour = true
+        )
+
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showEndTimePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.onEndTimeChange(endTimePickerState.hour, endTimePickerState.minute)
+                        showEndTimePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndTimePicker = false }) {
+                    Text("Cancel")
+                }
+            },
+            title = {
+                Text(
+                    text = "Select End Time (24h)",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            },
+            text = {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    TimePicker(state = endTimePickerState)
+                }
             }
-        }
+        )
     }
 }

@@ -118,4 +118,60 @@ class TaskNotificationManager(private val context: Context) {
     fun cancelNotification() {
         notificationManager.cancel(NOTIFICATION_ID)
     }
+
+    /**
+     * Updates the notification to confirm the added task title and parsed schedule,
+     * giving immediate visual feedback while keeping the inline reply option for adding more tasks.
+     */
+    fun showTaskAddedConfirmation(
+        taskTitle: String,
+        scheduleText: String
+    ) {
+        val openAppIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val openAppPendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            openAppIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val remoteInput = RemoteInput.Builder(KEY_TEXT_REPLY)
+            .setLabel("Type task title...")
+            .build()
+
+        val replyIntent = Intent(context, TaskNotificationReceiver::class.java).apply {
+            action = ACTION_ADD_TASK_FROM_NOTIFICATION
+        }
+        val replyPendingIntent = PendingIntent.getBroadcast(
+            context,
+            1,
+            replyIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0)
+        )
+
+        val replyAction = NotificationCompat.Action.Builder(
+            android.R.drawable.ic_input_add,
+            "Add Another Task",
+            replyPendingIntent
+        )
+            .addRemoteInput(remoteInput)
+            .setAllowGeneratedReplies(true)
+            .build()
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_task_notification)
+            .setContentTitle("✓ Task Added: $taskTitle")
+            .setContentText("⏰ $scheduleText")
+            .setStyle(NotificationCompat.BigTextStyle().bigText("⏰ $scheduleText"))
+            .setContentIntent(openAppPendingIntent)
+            .addAction(replyAction)
+            .setOngoing(false)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .build()
+
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
 }

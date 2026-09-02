@@ -19,7 +19,10 @@ data class QuickCaptureUiState(
     val dueDateMillis: Long? = DateTimeUtils.getTodayStartMillis(),
     val dueTimeHour: Int? = null,
     val dueTimeMinute: Int? = null,
+    val endTimeHour: Int? = null,
+    val endTimeMinute: Int? = null,
     val priority: Priority = Priority.MEDIUM,
+    val recurrence: com.example.data.RecurrenceType = com.example.data.RecurrenceType.NONE,
     val category: String = "General",
     val isSaving: Boolean = false,
     val isSaved: Boolean = false
@@ -48,8 +51,23 @@ class QuickCaptureViewModel(
         _uiState.update { it.copy(dueTimeHour = hour, dueTimeMinute = minute) }
     }
 
+    fun onEndTimeChange(hour: Int?, minute: Int?) {
+        _uiState.update { it.copy(endTimeHour = hour, endTimeMinute = minute) }
+    }
+
     fun onPriorityChange(priority: Priority) {
         _uiState.update { it.copy(priority = priority) }
+    }
+
+    fun onRecurrenceChange(recurrence: com.example.data.RecurrenceType) {
+        _uiState.update { 
+            it.copy(
+                recurrence = recurrence,
+                dueDateMillis = if (recurrence != com.example.data.RecurrenceType.NONE && it.dueDateMillis == null) {
+                    DateTimeUtils.getTodayStartMillis()
+                } else it.dueDateMillis
+            ) 
+        }
     }
 
     fun onCategoryChange(category: String) {
@@ -70,8 +88,11 @@ class QuickCaptureViewModel(
                     dueDateMillis = currentState.dueDateMillis,
                     dueTimeHour = currentState.dueTimeHour,
                     dueTimeMinute = currentState.dueTimeMinute,
+                    endTimeHour = currentState.endTimeHour,
+                    endTimeMinute = currentState.endTimeMinute,
                     priority = currentState.priority,
                     category = currentState.category,
+                    recurrence = currentState.recurrence,
                     isCompleted = false
                 )
             )

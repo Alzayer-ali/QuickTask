@@ -6,22 +6,34 @@
     android:background="@drawable/widget_task_item_bg"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingStart="12dp"
-    android:paddingTop="10dp"
+    android:paddingStart="10dp"
+    android:paddingTop="8dp"
     android:paddingEnd="12dp"
-    android:paddingBottom="10dp">
+    android:paddingBottom="8dp">
 
-    <!-- Priority Strip / Indicator (Using ImageView to comply with RemoteViews) -->
+    <!-- Priority Strip -->
     <ImageView
         android:id="@+id/widget_item_priority_indicator"
         android:layout_width="4dp"
-        android:layout_height="24dp"
-        android:layout_marginEnd="10dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="8dp"
         android:background="#D0BCFF"
         android:contentDescription="@null" />
 
-    <!-- Task Title & Due details -->
+    <!-- Interactive Check Button (Tap to complete task directly from widget) -->
+    <ImageView
+        android:id="@+id/widget_item_check_btn"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="8dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Complete Task"
+        android:padding="5dp"
+        android:src="@drawable/widget_circle_check" />
+
+    <!-- Task Title & Due details (Tap to open in app) -->
     <LinearLayout
+        android:id="@+id/widget_item_content"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"

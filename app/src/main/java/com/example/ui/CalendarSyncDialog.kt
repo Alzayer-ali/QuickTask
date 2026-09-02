@@ -62,7 +62,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun CalendarSyncDialog(
     repository: TaskRepository,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onPermissionGranted: () -> Unit = {}
 ) {
     val syncManager = repository.calendarSyncManager
     val context = LocalContext.current
@@ -85,6 +86,7 @@ fun CalendarSyncDialog(
         if (granted) {
             feedbackMessage = "Calendar permissions granted!"
             syncManager.setAutoSyncEnabled(true)
+            onPermissionGranted()
         } else {
             feedbackMessage = "Permission denied. You can still open events directly in your calendar app."
         }
@@ -243,9 +245,10 @@ fun CalendarSyncDialog(
                             } else {
                                 scope.launch {
                                     isSyncingAll = true
-                                    feedbackMessage = "Syncing tasks to calendar..."
-                                    val count = repository.syncAllDatedTasksToCalendar()
-                                    feedbackMessage = "Synced $count tasks to Phone Calendar!"
+                                    feedbackMessage = "Performing two-way sync with Calendar..."
+                                    val updatedFromCal = repository.syncFromDeviceCalendar()
+                                    val syncedToCal = repository.syncAllDatedTasksToCalendar()
+                                    feedbackMessage = "Sync Complete: $syncedToCal pushed to Calendar, $updatedFromCal updated from Calendar."
                                     isSyncingAll = false
                                 }
                             }

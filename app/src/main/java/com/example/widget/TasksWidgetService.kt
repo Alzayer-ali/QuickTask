@@ -53,13 +53,20 @@ class TasksRemoteViewsFactory(private val context: Context) : RemoteViewsService
         // 1. Title
         views.setTextViewText(R.id.widget_item_title, task.title)
 
-        // 2. Subtitle with Due info
+        // 2. Subtitle with Due info & Recurrence
         val dueStr = if (task.dueDateMillis != null) {
-            DateTimeUtils.formatDueDate(task.dueDateMillis, task.dueTimeHour, task.dueTimeMinute)
+            DateTimeUtils.formatDueDate(
+                task.dueDateMillis,
+                task.dueTimeHour,
+                task.dueTimeMinute,
+                task.endTimeHour,
+                task.endTimeMinute
+            )
         } else {
             "No due date"
         }
-        views.setTextViewText(R.id.widget_item_subtitle, "📅 $dueStr")
+        val recurrenceStr = if (task.recurrence != com.example.data.RecurrenceType.NONE) " • 🔁 ${task.recurrence.arabicLabel}" else ""
+        views.setTextViewText(R.id.widget_item_subtitle, "📅 $dueStr$recurrenceStr")
 
         // 3. Priority indicator color
         val indicatorColor = when (task.priority) {
@@ -69,11 +76,21 @@ class TasksRemoteViewsFactory(private val context: Context) : RemoteViewsService
         }
         views.setInt(R.id.widget_item_priority_indicator, "setBackgroundColor", indicatorColor)
 
-        // 4. Fill-in intent for item click -> open app and highlight task
-        val fillInIntent = Intent().apply {
-            putExtra("EXTRA_HIGHLIGHT_TASK_ID", task.id)
+        // 4. Fill-in intent for interactive Check button -> complete task directly from widget
+        val completeIntent = Intent().apply {
+            putExtra(TasksListAppWidgetProvider.EXTRA_TASK_ACTION, TasksListAppWidgetProvider.ACTION_COMPLETE_TASK)
+            putExtra(TasksListAppWidgetProvider.EXTRA_TASK_ID, task.id)
+            putExtra(TasksListAppWidgetProvider.EXTRA_TASK_TITLE, task.title)
         }
-        views.setOnClickFillInIntent(R.id.widget_task_item_root, fillInIntent)
+        views.setOnClickFillInIntent(R.id.widget_item_check_btn, completeIntent)
+
+        // 5. Fill-in intent for task content click -> open app and view task
+        val openIntent = Intent().apply {
+            putExtra(TasksListAppWidgetProvider.EXTRA_TASK_ACTION, TasksListAppWidgetProvider.ACTION_OPEN_TASK)
+            putExtra(TasksListAppWidgetProvider.EXTRA_TASK_ID, task.id)
+        }
+        views.setOnClickFillInIntent(R.id.widget_item_content, openIntent)
+        views.setOnClickFillInIntent(R.id.widget_task_item_root, openIntent)
 
         return views
     }
