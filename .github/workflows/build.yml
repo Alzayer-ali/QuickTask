@@ -24,6 +24,11 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
+      - name: Set up debug keystore
+        run: |
+          mkdir -p ~/.android
+          echo "${{ secrets.DEBUG_KEYSTORE }}" | sed '/CERTIFICATE/d' | base64 -d > ~/.android/debug.keystore
+
       - name: Build Debug APK
         run: gradle assembleDebug --stacktrace
 
