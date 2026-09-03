@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.automirrored.filled.PlaylistAddCheck
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -98,6 +99,7 @@ fun DashboardScreen(
     var showCalendarSyncDialog by remember { mutableStateOf(false) }
     var showBackupDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
+    var showSettingsDialog by remember { mutableStateOf(false) }
 
     val notificationManager = remember { TaskNotificationManager(context) }
 
@@ -201,6 +203,18 @@ fun DashboardScreen(
                             imageVector = Icons.Default.NotificationsActive,
                             contentDescription = "Show Quick Task Notification",
                             tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    // Settings Button
+                    IconButton(
+                        onClick = { showSettingsDialog = true },
+                        modifier = Modifier.testTag("topbar_settings_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
@@ -559,6 +573,16 @@ fun DashboardScreen(
     if (showThemeDialog) {
         ThemeSelectionDialog(
             onDismiss = { showThemeDialog = false }
+        )
+    }
+
+    // Settings Dialog
+    if (showSettingsDialog) {
+        SettingsDialog(
+            onDismiss = { showSettingsDialog = false },
+            onOpenTheme = { showThemeDialog = true },
+            onOpenCalendarSync = { showCalendarSyncDialog = true },
+            onOpenBackup = { showBackupDialog = true }
         )
     }
 }

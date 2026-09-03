@@ -53,4 +53,25 @@ class ExampleUnitTest {
         assertNotEquals(1001, reminderId1)
         assertNotEquals(1001, reminderId1001)
     }
+
+    @Test
+    fun `test quick setting click action options and fallback`() {
+        val notifAction = com.example.util.QuickSettingClickAction.valueOf("NOTIFICATION")
+        val dialogAction = com.example.util.QuickSettingClickAction.valueOf("DIALOG")
+
+        assertEquals(com.example.util.QuickSettingClickAction.NOTIFICATION, notifAction)
+        assertEquals(com.example.util.QuickSettingClickAction.DIALOG, dialogAction)
+
+        assertTrue(notifAction.title.isNotBlank())
+        assertTrue(notifAction.titleAr.isNotBlank())
+        assertTrue(notifAction.description.isNotBlank())
+        assertTrue(notifAction.descriptionAr.isNotBlank())
+
+        assertTrue(dialogAction.title.isNotBlank())
+        assertTrue(dialogAction.titleAr.isNotBlank())
+        assertTrue(dialogAction.description.isNotBlank())
+        assertTrue(dialogAction.descriptionAr.isNotBlank())
+
+        assertNotEquals(notifAction.title, dialogAction.title)
+    }
 }

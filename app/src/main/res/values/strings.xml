@@ -27,4 +27,21 @@
     <string name="widget_quick_bar_desc">Compact bar with instant add, notification trigger, and task counter</string>
     <string name="widget_tasks_list_desc">Interactive checklist widget of today\'s tasks with quick add</string>
     <string name="widget_quick_pill_desc">Minimalist floating card for 1-tap lock-screen quick capture</string>
+    
+    <!-- Quick Settings Tile -->
+    <string name="quick_task_tile_label">Quick Task</string>
+    <string name="quick_setting_action_notification">Notification</string>
+    <string name="quick_setting_action_dialog">Task Dialog</string>
+
+    <!-- Settings Dialog -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_qs_tile_section">Quick Settings Tile</string>
+    <string name="settings_qs_tile_desc">Choose what happens when tapping the Quick Task tile in your status bar</string>
+    <string name="settings_action_notification_title">Show Notification</string>
+    <string name="settings_action_notification_desc">Closes quick settings and shows the quick task entry notification</string>
+    <string name="settings_action_dialog_title">Open Task Dialog</string>
+    <string name="settings_action_dialog_desc">Closes quick settings and opens the new task popup directly</string>
+    <string name="settings_add_tile_btn">Add Tile to Quick Settings</string>
+    <string name="settings_tile_added_success">Quick Task tile added to Quick Settings!</string>
+    <string name="settings_tile_manual_guide">To add the tile manually: swipe down from the top twice, tap the Edit (pencil) icon, and drag "Quick Task" into your active tiles.</string>
 </resources>

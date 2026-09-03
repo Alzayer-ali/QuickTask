@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.example">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -60,6 +59,8 @@
         <activity
             android:name="com.example.SendTaskNotificationActivity"
             android:exported="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
             android:taskAffinity="com.example.notification.trigger"
             android:launchMode="singleInstance"
             android:theme="@style/Theme.TaskManager.NoDisplay"
@@ -70,6 +71,18 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <!-- Quick Settings Tile Service -->
+        <service
+            android:name="com.example.quicksetting.QuickTaskTileService"
+            android:label="@string/quick_task_tile_label"
+            android:icon="@drawable/ic_task_notification"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
 
         <!-- Quick Task Notification Receiver for direct text reply -->
         <receiver
