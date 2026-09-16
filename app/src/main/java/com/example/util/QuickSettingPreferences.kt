@@ -2,31 +2,28 @@ package com.example.util
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.ComponentName
+import android.os.Build
+import android.service.quicksettings.TileService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 enum class QuickSettingClickAction(
     val title: String,
-    val titleAr: String,
-    val description: String,
-    val descriptionAr: String
+    val description: String
 ) {
     NOTIFICATION(
         title = "Show Notification",
-        titleAr = "إظهار إشعار إضافة مهمة",
-        description = "Closes quick settings and posts an inline-reply notification in status bar",
-        descriptionAr = "إغلاق شريط الإعدادات السريعة وإظهار إشعار مع إمكانية الكتابة والرد السريع"
+        description = "Closes quick settings and posts an inline-reply notification in status bar"
     ),
     DIALOG(
         title = "Open Add Task Dialog",
-        titleAr = "فتح نافذة إضافة مهمة",
-        description = "Closes quick settings and opens the new task dialog directly",
-        descriptionAr = "إغلاق شريط الإعدادات السريعة وفتح نافذة إضافة مهمة جديدة مباشرة"
+        description = "Closes quick settings and opens the new task dialog directly"
     )
 }
 
-class QuickSettingPreferences(context: Context) {
+class QuickSettingPreferences(private val context: Context) {
 
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -44,11 +41,20 @@ class QuickSettingPreferences(context: Context) {
         }
     }
 
-    fun getAction(): QuickSettingClickAction = _actionFlow.value
+    fun getAction(): QuickSettingClickAction = loadAction()
 
     fun setAction(action: QuickSettingClickAction) {
-        prefs.edit().putString(KEY_ACTION, action.name).apply()
+        prefs.edit().putString(KEY_ACTION, action.name).commit()
         _actionFlow.value = action
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                TileService.requestListeningState(
+                    context,
+                    ComponentName(context, "com.example.quicksetting.QuickTaskTileService")
+                )
+            }
+        } catch (_: Exception) {
+        }
     }
 
     companion object {

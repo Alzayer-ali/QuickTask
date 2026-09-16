@@ -7,6 +7,7 @@ import com.example.data.Priority
 import com.example.data.TaskEntity
 import com.example.data.TaskRepository
 import com.example.util.DateTimeUtils
+import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +23,7 @@ enum class TaskFilter(val label: String) {
     COMPLETED("Completed")
 }
 
+@Immutable
 data class DashboardUiState(
     val tasks: List<TaskEntity> = emptyList(),
     val allTasks: List<TaskEntity> = emptyList(),

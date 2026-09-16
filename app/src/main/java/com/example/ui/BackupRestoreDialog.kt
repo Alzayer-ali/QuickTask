@@ -108,9 +108,9 @@ fun BackupRestoreDialog(
                 }
                 isProcessing = false
                 if (success) {
-                    Toast.makeText(context, "تم حفظ النسخة الاحتياطية بنجاح", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Backup saved successfully", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(context, "فشل حفظ الملف", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Failed to save backup", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -131,12 +131,12 @@ fun BackupRestoreDialog(
                     val parsed = TaskBackupHelper.parseFromJson(content)
                     if (parsed.isNotEmpty()) {
                         importedTasksPreview = parsed
-                        Toast.makeText(context, "تم قراءة ${parsed.size} مهمة من الملف", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Loaded ${parsed.size} tasks from file", Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(context, "لم يتم العثور على مهام صالحة في الملف", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "No valid tasks found in file", Toast.LENGTH_LONG).show()
                     }
                 } else {
-                    Toast.makeText(context, "تعذر قراءة محتوى الملف", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Unable to read file content", Toast.LENGTH_SHORT).show()
                 }
             }
         }

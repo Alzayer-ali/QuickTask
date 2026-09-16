@@ -65,7 +65,7 @@ class TasksRemoteViewsFactory(private val context: Context) : RemoteViewsService
         } else {
             "No due date"
         }
-        val recurrenceStr = if (task.recurrence != com.example.data.RecurrenceType.NONE) " • 🔁 ${task.recurrence.arabicLabel}" else ""
+        val recurrenceStr = if (task.recurrence != com.example.data.RecurrenceType.NONE) " • 🔁 ${task.recurrence.label}" else ""
         views.setTextViewText(R.id.widget_item_subtitle, "📅 $dueStr$recurrenceStr")
 
         // 3. Priority indicator color
@@ -91,6 +91,9 @@ class TasksRemoteViewsFactory(private val context: Context) : RemoteViewsService
         }
         views.setOnClickFillInIntent(R.id.widget_item_content, openIntent)
         views.setOnClickFillInIntent(R.id.widget_task_item_root, openIntent)
+
+        // 6. Apply Widget Appearance Theme for item
+        WidgetThemeHelper.applyTaskItemStyle(context, views, task)
 
         return views
     }

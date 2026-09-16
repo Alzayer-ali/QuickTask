@@ -72,6 +72,9 @@ class QuickBarAppWidgetProvider : AppWidgetProvider() {
             )
             views.setOnClickPendingIntent(R.id.widget_bar_btn_add, addPendingIntent)
 
+            // Apply Widget Appearance Theme
+            WidgetThemeHelper.applyQuickBarStyle(context, views)
+
             // Synchronous update
             appWidgetManager.updateAppWidget(widgetId, views)
 

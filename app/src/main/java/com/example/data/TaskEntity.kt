@@ -1,9 +1,11 @@
 package com.example.data
 
+import androidx.compose.runtime.Immutable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 
+@Immutable
 @Entity(tableName = "tasks")
 @TypeConverters(PriorityConverter::class, RecurrenceTypeConverter::class)
 data class TaskEntity(

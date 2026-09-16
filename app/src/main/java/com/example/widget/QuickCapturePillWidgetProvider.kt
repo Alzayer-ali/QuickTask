@@ -47,6 +47,9 @@ class QuickCapturePillWidgetProvider : AppWidgetProvider() {
             views.setOnClickPendingIntent(R.id.widget_pill_root, pendingIntent)
             views.setOnClickPendingIntent(R.id.widget_pill_circle, pendingIntent)
 
+            // Apply Widget Appearance Theme
+            WidgetThemeHelper.applyQuickPillStyle(context, views)
+
             appWidgetManager.updateAppWidget(widgetId, views)
 
             // Asynchronous count update

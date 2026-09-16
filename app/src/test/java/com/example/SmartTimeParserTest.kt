@@ -155,4 +155,118 @@ class SmartTimeParserTest {
         val monthlyResult = SmartTimeParser.parse("دفع الفواتير شهرياً")
         assertEquals(com.example.data.RecurrenceType.MONTHLY, monthlyResult.recurrence)
     }
+
+    @Test
+    fun testSmartTimeInferenceAt1300_Hour5ResolvesTo1700Today() {
+        val refCal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 13)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val result = SmartTimeParser.parse("الساعة 5", refCal)
+
+        assertEquals(17, result.startHour)
+        assertEquals(0, result.startMinute)
+        org.junit.Assert.assertNull(result.endHour)
+        org.junit.Assert.assertNull(result.endMinute)
+        org.junit.Assert.assertTrue(DateTimeUtils.isToday(result.dueDateMillis!!))
+    }
+
+    @Test
+    fun testSmartTimeInferenceAt1900_Hour5WithoutDateResolvesTo0500Tomorrow() {
+        val refCal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 19)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val result = SmartTimeParser.parse("الساعة 5", refCal)
+
+        assertEquals(5, result.startHour)
+        assertEquals(0, result.startMinute)
+        org.junit.Assert.assertNull(result.endHour)
+        org.junit.Assert.assertNull(result.endMinute)
+        org.junit.Assert.assertTrue(DateTimeUtils.isTomorrow(result.dueDateMillis!!))
+    }
+
+    @Test
+    fun testSmartTimeInferenceAt0300_Hour5ResolvesTo0500Today() {
+        val refCal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 3)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val result = SmartTimeParser.parse("الساعة 5", refCal)
+
+        assertEquals(5, result.startHour)
+        assertEquals(0, result.startMinute)
+        org.junit.Assert.assertNull(result.endHour)
+        org.junit.Assert.assertTrue(DateTimeUtils.isToday(result.dueDateMillis!!))
+    }
+
+    @Test
+    fun testSmartTimeInferenceAt1900_Hour8ResolvesTo2000Today() {
+        val refCal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 19)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val result = SmartTimeParser.parse("الساعة 8", refCal)
+
+        assertEquals(20, result.startHour)
+        assertEquals(0, result.startMinute)
+        org.junit.Assert.assertNull(result.endHour)
+        org.junit.Assert.assertTrue(DateTimeUtils.isToday(result.dueDateMillis!!))
+    }
+
+    @Test
+    fun testSmartTimeInferenceAt2100_Hour8ResolvesTo0800Tomorrow() {
+        val refCal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 21)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val result = SmartTimeParser.parse("الساعة 8", refCal)
+
+        assertEquals(8, result.startHour)
+        assertEquals(0, result.startMinute)
+        org.junit.Assert.assertNull(result.endHour)
+        org.junit.Assert.assertTrue(DateTimeUtils.isTomorrow(result.dueDateMillis!!))
+    }
+
+    @Test
+    fun testSmartTimeInferenceWithExplicitPMAndNoDatePassedToday() {
+        val refCal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 19)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val result = SmartTimeParser.parse("الساعة 5 مساء", refCal)
+
+        assertEquals(17, result.startHour)
+        assertEquals(0, result.startMinute)
+        org.junit.Assert.assertNull(result.endHour)
+        org.junit.Assert.assertTrue(DateTimeUtils.isTomorrow(result.dueDateMillis!!))
+    }
+
+    @Test
+    fun testSmartTimeWithExplicitTomorrowKeyword() {
+        val refCal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 19)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val result = SmartTimeParser.parse("غدا الساعة 5", refCal)
+
+        assertEquals(5, result.startHour)
+        assertEquals(0, result.startMinute)
+        org.junit.Assert.assertNull(result.endHour)
+        org.junit.Assert.assertTrue(DateTimeUtils.isTomorrow(result.dueDateMillis!!))
+    }
 }

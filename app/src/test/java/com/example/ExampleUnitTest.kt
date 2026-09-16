@@ -63,15 +63,35 @@ class ExampleUnitTest {
         assertEquals(com.example.util.QuickSettingClickAction.DIALOG, dialogAction)
 
         assertTrue(notifAction.title.isNotBlank())
-        assertTrue(notifAction.titleAr.isNotBlank())
         assertTrue(notifAction.description.isNotBlank())
-        assertTrue(notifAction.descriptionAr.isNotBlank())
 
         assertTrue(dialogAction.title.isNotBlank())
-        assertTrue(dialogAction.titleAr.isNotBlank())
         assertTrue(dialogAction.description.isNotBlank())
-        assertTrue(dialogAction.descriptionAr.isNotBlank())
 
         assertNotEquals(notifAction.title, dialogAction.title)
+    }
+
+    @Test
+    fun `test widget theme style enum options and labels`() {
+        val followApp = com.example.ui.theme.WidgetThemeStyle.FOLLOW_APP
+        val liquidGlass = com.example.ui.theme.WidgetThemeStyle.LIQUID_GLASS
+
+        assertEquals("نفس مظهر التطبيق", followApp.label)
+        assertTrue(liquidGlass.label.contains("زجاجي شفاف"))
+        assertTrue(liquidGlass.label.contains("Liquid glass"))
+
+        // Verify default in ThemeSettings
+        val defaultSettings = com.example.ui.theme.ThemeSettings()
+        assertEquals(com.example.ui.theme.WidgetThemeStyle.FOLLOW_APP, defaultSettings.widgetStyle)
+
+        // Verify copy with liquid glass
+        val customSettings = defaultSettings.copy(widgetStyle = com.example.ui.theme.WidgetThemeStyle.LIQUID_GLASS)
+        assertEquals(com.example.ui.theme.WidgetThemeStyle.LIQUID_GLASS, customSettings.widgetStyle)
+    }
+
+    @Test
+    fun `test initial permissions constants in MainActivity`() {
+        assertEquals("app_launch_prefs", MainActivity.PREFS_APP_LAUNCH)
+        assertEquals("has_requested_initial_permissions", MainActivity.KEY_HAS_REQUESTED_INITIAL_PERMS)
     }
 }

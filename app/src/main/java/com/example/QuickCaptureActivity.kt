@@ -5,11 +5,12 @@ import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
-import com.example.ui.UnifiedTaskDialog
+import com.example.ui.QuickTaskDialog
 import com.example.ui.theme.TaskManagerTheme
 import kotlinx.coroutines.launch
 
@@ -24,8 +25,7 @@ class QuickCaptureActivity : ComponentActivity() {
 
         setContent {
             TaskManagerTheme {
-                UnifiedTaskDialog(
-                    initialTask = null,
+                QuickTaskDialog(
                     onDismiss = { finish() },
                     onSave = { task ->
                         lifecycleScope.launch {
@@ -38,12 +38,15 @@ class QuickCaptureActivity : ComponentActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+
     private fun configureLockScreenFlags() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
-            val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
-            keyguardManager?.requestDismissKeyguard(this, null)
         } else {
             @Suppress("DEPRECATION")
             window.addFlags(

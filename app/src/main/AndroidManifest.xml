@@ -45,8 +45,8 @@
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:excludeFromRecents="true"
-            android:taskAffinity=""
-            android:launchMode="singleTask"
+            android:taskAffinity="com.example.quickcapture"
+            android:launchMode="singleInstance"
             android:windowSoftInputMode="stateVisible|adjustResize"
             android:theme="@style/Theme.TaskManager.QuickCaptureDialog">
             <intent-filter>

@@ -147,65 +147,6 @@ fun DashboardScreen(
                     }
                 },
                 actions = {
-                    // Theme & Appearance Customization Button
-                    IconButton(
-                        onClick = { showThemeDialog = true },
-                        modifier = Modifier.testTag("topbar_theme_btn")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Palette,
-                            contentDescription = "Theme & Appearance",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    // Backup & Restore Button
-                    IconButton(
-                        onClick = { showBackupDialog = true },
-                        modifier = Modifier.testTag("topbar_backup_btn")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CloudUpload,
-                            contentDescription = "Backup & Restore",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    // Phone Calendar Sync Button
-                    IconButton(
-                        onClick = { showCalendarSyncDialog = true },
-                        modifier = Modifier.testTag("topbar_calendar_sync_btn")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CalendarMonth,
-                            contentDescription = "Phone Calendar Sync",
-                            tint = if (state.isCalendarSyncEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    // Direct Reply Notification Button
-                    IconButton(
-                        onClick = {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-                            ) {
-                                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            } else {
-                                notificationManager.showQuickTaskNotification()
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Quick task notification active in status bar")
-                                }
-                            }
-                        },
-                        modifier = Modifier.testTag("topbar_notification_btn")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.NotificationsActive,
-                            contentDescription = "Show Quick Task Notification",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
                     // Settings Button
                     IconButton(
                         onClick = { showSettingsDialog = true },
@@ -277,241 +218,162 @@ fun DashboardScreen(
             }
         }
 
-        val totalAll = state.totalPendingCount + state.totalCompletedCount
-        val progress = remember(state.totalPendingCount, state.totalCompletedCount) {
-            if (totalAll > 0) state.totalCompletedCount.toFloat() / totalAll else 0f
+        val onSearchQueryChange: (String) -> Unit = remember(viewModel) {
+            { query -> viewModel.setSearchQuery(query) }
         }
-        val animatedProgress by animateFloatAsState(targetValue = progress, label = "progressAnim")
-        val outlineVariant = MaterialTheme.colorScheme.outlineVariant
-        val overviewBorder = remember(outlineVariant) {
-            androidx.compose.foundation.BorderStroke(1.dp, outlineVariant)
+        val onClearSearch: () -> Unit = remember(viewModel) {
+            { viewModel.setSearchQuery("") }
         }
 
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .testTag("tasks_lazy_column"),
-            contentPadding = PaddingValues(
-                bottom = 88.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Search Bar Item
-            item(key = "dashboard_search_bar", contentType = "search_bar") {
-                OutlinedTextField(
-                    value = state.searchQuery,
-                    onValueChange = { viewModel.setSearchQuery(it) },
-                    placeholder = {
-                        Text(
-                            text = stringResource(R.string.search_tasks),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
-                    },
-                    trailingIcon = {
-                        if (state.searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { viewModel.setSearchQuery("") }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Clear search")
-                            }
+            // 1. Sleek Search Bar
+            OutlinedTextField(
+                value = state.searchQuery,
+                onValueChange = onSearchQueryChange,
+                placeholder = {
+                    Text(
+                        text = stringResource(R.string.search_tasks),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                },
+                trailingIcon = {
+                    if (state.searchQuery.isNotEmpty()) {
+                        IconButton(onClick = onClearSearch) {
+                            Icon(Icons.Default.Clear, contentDescription = "Clear search")
                         }
-                    },
-                    shape = RoundedCornerShape(20.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                    ),
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp)
-                        .testTag("dashboard_search_input")
-                )
+                    }
+                },
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                ),
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .testTag("dashboard_search_input")
+            )
+
+            // 2. Compact Overview & Progress Bar (Isolated to avoid recomposing parent)
+            DashboardOverviewCard(
+                totalPendingCount = state.totalPendingCount,
+                totalCompletedCount = state.totalCompletedCount,
+                dueTodayCount = state.dueTodayCount,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+
+            // 3. Pinned Filter Chips Row (Outside LazyColumn to eliminate stickyHeader layout thrashing)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TaskFilter.entries.forEach { filter ->
+                    val isSelected = state.selectedFilter == filter
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { viewModel.setFilter(filter) },
+                        label = {
+                            Text(
+                                text = filter.label,
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                                )
+                            )
+                        },
+                        shape = RoundedCornerShape(50),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        modifier = Modifier.testTag("filter_chip_${filter.name.lowercase()}")
+                    )
+                }
             }
 
-            // Overview Card Item
-            item(key = "dashboard_overview_card", contentType = "overview_card") {
-                Card(
+            // 4. Smooth, 100% Homogeneous LazyColumn for 120fps Fluid Scrolling
+            if (state.tasks.isEmpty()) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 2.dp)
-                        .testTag("stats_overview_card"),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    border = overviewBorder,
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp)
+                        .testTag("empty_state_view"),
+                    contentAlignment = Alignment.Center
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(18.dp)
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                            modifier = Modifier.size(64.dp)
                         ) {
-                            Column {
-                                Text(
-                                    text = "TASK OVERVIEW",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        letterSpacing = 1.2.sp,
-                                        fontSize = 10.sp
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = if (state.totalPendingCount == 0 && state.totalCompletedCount > 0) {
-                                        "All tasks completed"
-                                    } else {
-                                        "${state.totalPendingCount} pending • ${state.dueTodayCount} due today"
-                                    },
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-
-                            Surface(
-                                shape = RoundedCornerShape(50),
-                                color = MaterialTheme.colorScheme.primaryContainer
-                            ) {
-                                Text(
-                                    text = "${(animatedProgress * 100).toInt()}% Done",
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.PlaylistAddCheck,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp),
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(14.dp))
 
-                        LinearProgressIndicator(
-                            progress = { animatedProgress },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(50)),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            strokeCap = StrokeCap.Round
+                        Text(
+                            text = stringResource(R.string.empty_tasks_title),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
+                            color = MaterialTheme.colorScheme.onSurface
                         )
-                    }
-                }
-            }
 
-            // Sticky Filter Chips Row
-            stickyHeader(key = "dashboard_filter_chips", contentType = "filter_chips") {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                            .padding(horizontal = 16.dp, vertical = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        TaskFilter.entries.forEach { filter ->
-                            val isSelected = state.selectedFilter == filter
-                            FilterChip(
-                                selected = isSelected,
-                                onClick = { viewModel.setFilter(filter) },
-                                label = {
-                                    Text(
-                                        text = filter.label,
-                                        style = MaterialTheme.typography.labelMedium.copy(
-                                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                        )
-                                    )
-                                },
-                                shape = RoundedCornerShape(50),
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                    selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary
-                                ),
-                                modifier = Modifier.testTag("filter_chip_${filter.name.lowercase()}")
-                            )
-                        }
-                    }
-                }
-            }
+                        Spacer(modifier = Modifier.height(4.dp))
 
-            // Tasks List / Empty State
-            if (state.tasks.isEmpty()) {
-                item(key = "dashboard_empty_state", contentType = "empty_state") {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 48.dp)
-                            .testTag("empty_state_view"),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                                modifier = Modifier.size(64.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.PlaylistAddCheck,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(32.dp),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(14.dp))
-
-                            Text(
-                                text = stringResource(R.string.empty_tasks_title),
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            Text(
-                                text = stringResource(R.string.empty_tasks_subtitle),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Text(
+                            text = stringResource(R.string.empty_tasks_subtitle),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             } else {
-                items(
-                    items = state.tasks,
-                    key = { it.id },
-                    contentType = { "task_item" }
-                ) { task ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                    ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .testTag("tasks_lazy_column"),
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 4.dp,
+                        bottom = 88.dp
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(
+                        items = state.tasks,
+                        key = { it.id },
+                        contentType = { "task_item" }
+                    ) { task ->
                         TaskItemCard(
                             task = task,
                             onToggleComplete = onToggleComplete,
@@ -525,9 +387,9 @@ fun DashboardScreen(
         }
     }
 
-    // Unified Task Dialog for Adding New Task
+    // In-App Task Dialog for Adding New Task
     if (showAddDialog) {
-        UnifiedTaskDialog(
+        AppTaskDialog(
             initialTask = null,
             onDismiss = { showAddDialog = false },
             onSave = { newTask ->
@@ -537,9 +399,9 @@ fun DashboardScreen(
         )
     }
 
-    // Unified Task Dialog for Editing Task
+    // In-App Task Dialog for Editing Task
     if (taskToEdit != null) {
-        UnifiedTaskDialog(
+        AppTaskDialog(
             initialTask = taskToEdit,
             onDismiss = { taskToEdit = null },
             onSave = { updatedTask ->
@@ -582,7 +444,112 @@ fun DashboardScreen(
             onDismiss = { showSettingsDialog = false },
             onOpenTheme = { showThemeDialog = true },
             onOpenCalendarSync = { showCalendarSyncDialog = true },
-            onOpenBackup = { showBackupDialog = true }
+            onOpenBackup = { showBackupDialog = true },
+            onTriggerNotification = {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                } else {
+                    notificationManager.showQuickTaskNotification()
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Quick task notification active in status bar")
+                    }
+                }
+            }
         )
     }
 }
+
+@Composable
+private fun DashboardOverviewCard(
+    totalPendingCount: Int,
+    totalCompletedCount: Int,
+    dueTodayCount: Int,
+    modifier: Modifier = Modifier
+) {
+    val totalAll = totalPendingCount + totalCompletedCount
+    val progress = remember(totalPendingCount, totalCompletedCount) {
+        if (totalAll > 0) totalCompletedCount.toFloat() / totalAll else 0f
+    }
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        label = "progressAnim"
+    )
+    val outlineVariant = MaterialTheme.colorScheme.outlineVariant
+    val cardBorder = remember(outlineVariant) {
+        androidx.compose.foundation.BorderStroke(1.dp, outlineVariant.copy(alpha = 0.5f))
+    }
+
+    Card(
+        modifier = modifier.testTag("stats_overview_card"),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        border = cardBorder,
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "TASK OVERVIEW",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.2.sp,
+                            fontSize = 10.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = if (totalPendingCount == 0 && totalCompletedCount > 0) {
+                            "All tasks completed"
+                        } else {
+                            "$totalPendingCount pending • $dueTodayCount due today"
+                        },
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Text(
+                        text = "${(animatedProgress * 100).toInt()}% Done",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            LinearProgressIndicator(
+                progress = { animatedProgress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(50)),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                strokeCap = StrokeCap.Round
+            )
+        }
+    }
+}
+

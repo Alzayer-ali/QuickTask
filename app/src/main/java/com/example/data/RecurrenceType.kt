@@ -2,13 +2,13 @@ package com.example.data
 
 import androidx.room.TypeConverter
 
-enum class RecurrenceType(val label: String, val arabicLabel: String) {
-    NONE("None", "بدون تكرار"),
-    DAILY("Daily", "يومياً"),
-    WEEKDAYS("Weekdays", "أيام العمل"),
-    WEEKLY("Weekly", "أسبوعياً"),
-    MONTHLY("Monthly", "شهرياً"),
-    YEARLY("Yearly", "سنوياً");
+enum class RecurrenceType(val label: String) {
+    NONE("None"),
+    DAILY("Daily"),
+    WEEKDAYS("Weekdays"),
+    WEEKLY("Weekly"),
+    MONTHLY("Monthly"),
+    YEARLY("Yearly");
 
     companion object {
         fun fromString(value: String?): RecurrenceType {

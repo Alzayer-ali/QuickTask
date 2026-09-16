@@ -32,19 +32,27 @@ class QuickTaskTileService : TileService() {
 
         val action = QuickSettingPreferences.getInstance(this).getAction()
 
-        when (action) {
+        val intent = when (action) {
             QuickSettingClickAction.NOTIFICATION -> {
-                val intent = Intent(this, SendTaskNotificationActivity::class.java).apply {
+                Intent(this, SendTaskNotificationActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                 }
-                launchActivityAndCollapse(intent)
             }
             QuickSettingClickAction.DIALOG -> {
-                val intent = Intent(this, QuickCaptureActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                Intent(this, QuickCaptureActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                 }
-                launchActivityAndCollapse(intent)
             }
+        }
+
+        val requestCode = if (action == QuickSettingClickAction.DIALOG) 102 else 101
+
+        if (isLocked) {
+            unlockAndRun {
+                launchActivityAndCollapse(intent, requestCode)
+            }
+        } else {
+            launchActivityAndCollapse(intent, requestCode)
         }
     }
 
@@ -66,18 +74,26 @@ class QuickTaskTileService : TileService() {
         tile.updateTile()
     }
 
-    private fun launchActivityAndCollapse(intent: Intent) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            val pendingIntent = PendingIntent.getActivity(
-                this,
-                0,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-            startActivityAndCollapse(pendingIntent)
-        } else {
-            @Suppress("DEPRECATION")
-            startActivityAndCollapse(intent)
+    private fun launchActivityAndCollapse(intent: Intent, requestCode: Int) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                val pendingIntent = PendingIntent.getActivity(
+                    this,
+                    requestCode,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                startActivityAndCollapse(pendingIntent)
+            } else {
+                @Suppress("DEPRECATION")
+                startActivityAndCollapse(intent)
+            }
+        } catch (e: Exception) {
+            try {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+            } catch (_: Exception) {
+            }
         }
     }
 }

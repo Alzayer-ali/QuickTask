@@ -78,14 +78,13 @@ fun TaskItemCard(
     onAddToCalendar: ((TaskEntity) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    val isOverdue = remember(task) {
+    val isOverdue = remember(task.isCompleted, task.dueDateMillis, task.dueTimeHour, task.dueTimeMinute) {
         !task.isCompleted && DateTimeUtils.isOverdue(task.dueDateMillis, task.dueTimeHour, task.dueTimeMinute)
     }
-    val isDueToday = remember(task) {
+    val isDueToday = remember(task.isCompleted, task.dueDateMillis) {
         !task.isCompleted && DateTimeUtils.isDueToday(task.dueDateMillis)
     }
-
-    val formattedDue = remember(task) {
+    val formattedDue = remember(task.dueDateMillis, task.dueTimeHour, task.dueTimeMinute, task.endTimeHour, task.endTimeMinute) {
         if (task.dueDateMillis != null) {
             DateTimeUtils.formatDueDate(
                 task.dueDateMillis,
@@ -100,19 +99,14 @@ fun TaskItemCard(
     val surfaceColor = MaterialTheme.colorScheme.surface
     val outlineVariant = MaterialTheme.colorScheme.outlineVariant
     val primaryColor = MaterialTheme.colorScheme.primary
-    val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
     val onSurface = MaterialTheme.colorScheme.onSurface
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
 
-    val cardBgColor = remember(task.isCompleted, surfaceColor) {
-        if (task.isCompleted) surfaceColor.copy(alpha = 0.6f) else surfaceColor
-    }
-
     val cardBorder = remember(isOverdue, outlineVariant) {
         if (isOverdue) {
-            androidx.compose.foundation.BorderStroke(1.dp, PriorityHigh.copy(alpha = 0.5f))
+            androidx.compose.foundation.BorderStroke(1.dp, PriorityHigh.copy(alpha = 0.6f))
         } else {
-            androidx.compose.foundation.BorderStroke(1.dp, outlineVariant.copy(alpha = 0.6f))
+            androidx.compose.foundation.BorderStroke(1.dp, outlineVariant.copy(alpha = 0.5f))
         }
     }
 
@@ -121,15 +115,17 @@ fun TaskItemCard(
         modifier = modifier
             .fillMaxWidth()
             .testTag("task_item_${task.id}"),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = cardBgColor),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (task.isCompleted) surfaceColor.copy(alpha = 0.65f) else surfaceColor
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = cardBorder
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Minimalist Checkbox
@@ -141,8 +137,8 @@ fun TaskItemCard(
                         if (task.isCompleted) primaryColor else Color.Transparent
                     )
                     .border(
-                        width = 2.dp,
-                        color = if (task.isCompleted) primaryColor else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                        width = 1.8.dp,
+                        color = if (task.isCompleted) primaryColor else outlineVariant.copy(alpha = 0.8f),
                         shape = RoundedCornerShape(7.dp)
                     )
                     .clickable { onToggleComplete(task) }
@@ -153,13 +149,13 @@ fun TaskItemCard(
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = "Completed",
-                        tint = onPrimaryColor,
-                        modifier = Modifier.size(16.dp)
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(15.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
             // Task Content
             Column(
@@ -168,14 +164,10 @@ fun TaskItemCard(
                 Text(
                     text = task.title,
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = if (task.isCompleted) FontWeight.Normal else FontWeight.Medium,
+                        fontWeight = if (task.isCompleted) FontWeight.Normal else FontWeight.SemiBold,
                         textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None
                     ),
-                    color = if (task.isCompleted) {
-                        onSurfaceVariant.copy(alpha = 0.6f)
-                    } else {
-                        onSurface
-                    },
+                    color = if (task.isCompleted) onSurfaceVariant.copy(alpha = 0.6f) else onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -185,121 +177,150 @@ fun TaskItemCard(
                     Text(
                         text = task.notes,
                         style = MaterialTheme.typography.bodySmall,
-                        color = onSurfaceVariant.copy(alpha = 0.75f),
+                        color = onSurfaceVariant.copy(alpha = 0.7f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                val hasBadges = formattedDue != null ||
+                        task.recurrence != com.example.data.RecurrenceType.NONE ||
+                        (task.priority != Priority.MEDIUM || task.dueDateMillis == null) ||
+                        (task.category.isNotBlank() && task.category != "General")
 
-                // Badges & Subtext
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Due Date & Time Subtitle (24-hour)
-                    if (formattedDue != null) {
-                        val dueColor = when {
-                            task.isCompleted -> onSurfaceVariant.copy(alpha = 0.6f)
-                            isOverdue -> PriorityHigh
-                            isDueToday -> primaryColor
-                            else -> onSurfaceVariant
+                if (hasBadges) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        // Due Date & Time
+                        if (formattedDue != null) {
+                            val dueColor = when {
+                                task.isCompleted -> onSurfaceVariant.copy(alpha = 0.6f)
+                                isOverdue -> PriorityHigh
+                                isDueToday -> primaryColor
+                                else -> onSurfaceVariant
+                            }
+
+                            val dueBg = when {
+                                isOverdue -> PriorityHigh.copy(alpha = 0.12f)
+                                isDueToday -> primaryColor.copy(alpha = 0.10f)
+                                else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(50))
+                                    .background(dueBg)
+                                    .padding(horizontal = 7.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AccessTime,
+                                    contentDescription = null,
+                                    tint = dueColor,
+                                    modifier = Modifier.size(11.dp)
+                                )
+                                Spacer(modifier = Modifier.width(3.dp))
+                                Text(
+                                    text = formattedDue.uppercase(),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 9.sp,
+                                        fontWeight = if (isDueToday || isOverdue) FontWeight.Bold else FontWeight.Medium,
+                                        letterSpacing = 0.6.sp
+                                    ),
+                                    color = dueColor
+                                )
+                            }
                         }
 
-                        Text(
-                            text = formattedDue.uppercase(),
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = if (isDueToday || isOverdue) FontWeight.Bold else FontWeight.Medium,
-                                letterSpacing = 1.1.sp
-                            ),
-                            color = dueColor
-                        )
-                    }
-
-                    // Recurrence Badge
-                    if (task.recurrence != com.example.data.RecurrenceType.NONE) {
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(50))
-                                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
-                                .padding(horizontal = 6.dp, vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Repeat,
-                                contentDescription = "Recurring Task",
-                                tint = primaryColor,
-                                modifier = Modifier.size(11.dp)
-                            )
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text(
-                                text = task.recurrence.label.uppercase(),
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 0.5.sp
-                                ),
-                                color = primaryColor
-                            )
-                        }
-                    }
-
-                    // Priority Badge
-                    if (task.priority != Priority.MEDIUM || task.dueDateMillis == null) {
-                        val pColor = when (task.priority) {
-                            Priority.HIGH -> PriorityHigh
-                            Priority.MEDIUM -> PriorityMedium
-                            Priority.LOW -> PriorityLow
+                        // Recurrence Badge
+                        if (task.recurrence != com.example.data.RecurrenceType.NONE) {
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(50))
+                                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Repeat,
+                                    contentDescription = "Recurring Task",
+                                    tint = primaryColor,
+                                    modifier = Modifier.size(11.dp)
+                                )
+                                Spacer(modifier = Modifier.width(3.dp))
+                                Text(
+                                    text = task.recurrence.label.uppercase(),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 0.5.sp
+                                    ),
+                                    color = primaryColor
+                                )
+                            }
                         }
 
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(50))
-                                .background(pColor.copy(alpha = 0.12f))
-                                .padding(horizontal = 6.dp, vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        // Priority Badge
+                        if (task.priority != Priority.MEDIUM || task.dueDateMillis == null) {
+                            val pColor = when (task.priority) {
+                                Priority.HIGH -> PriorityHigh
+                                Priority.MEDIUM -> PriorityMedium
+                                Priority.LOW -> PriorityLow
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(50))
+                                    .background(pColor.copy(alpha = 0.12f))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(5.dp)
+                                        .clip(CircleShape)
+                                        .background(pColor)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = task.priority.label.uppercase(),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 0.6.sp
+                                    ),
+                                    color = pColor
+                                )
+                            }
+                        }
+
+                        // Category Badge
+                        if (task.category.isNotBlank() && task.category != "General") {
                             Box(
                                 modifier = Modifier
-                                    .size(5.dp)
-                                    .clip(CircleShape)
-                                    .background(pColor)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = task.priority.label.uppercase(),
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 0.8.sp
-                                ),
-                                color = pColor
-                            )
-                        }
-                    }
-
-                    // Category Badge
-                    if (task.category.isNotBlank() && task.category != "General") {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(50))
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
-                                .padding(horizontal = 7.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = task.category,
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    letterSpacing = 0.5.sp
-                                ),
-                                color = onSurfaceVariant
-                            )
+                                    .clip(RoundedCornerShape(50))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = task.category,
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        letterSpacing = 0.4.sp
+                                    ),
+                                    color = onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.width(6.dp))
 
             // Action buttons
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -314,7 +335,7 @@ fun TaskItemCard(
                         Icon(
                             imageVector = Icons.Default.CalendarToday,
                             contentDescription = "Add to Phone Calendar",
-                            tint = if (task.isCalendarSynced) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                            tint = if (task.isCalendarSynced) primaryColor else onSurfaceVariant.copy(alpha = 0.4f),
                             modifier = Modifier.size(15.dp)
                         )
                     }
@@ -329,7 +350,7 @@ fun TaskItemCard(
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Edit task",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        tint = onSurfaceVariant.copy(alpha = 0.45f),
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -360,7 +381,7 @@ fun TaskEditDialog(
     onSave: (TaskEntity) -> Unit
 ) {
     if (task == null) return
-    UnifiedTaskDialog(
+    AppTaskDialog(
         initialTask = task,
         onDismiss = onDismiss,
         onSave = onSave

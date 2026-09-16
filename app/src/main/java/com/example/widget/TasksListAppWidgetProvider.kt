@@ -154,6 +154,9 @@ class TasksListAppWidgetProvider : AppWidgetProvider() {
                 } catch (_: Exception) {}
             }
 
+            // Apply Widget Appearance Theme
+            WidgetThemeHelper.applyTasksListStyle(context, views)
+
             // Immediately send the complete RemoteViews to AppWidgetManager
             appWidgetManager.updateAppWidget(widgetId, views)
             appWidgetManager.notifyAppWidgetViewDataChanged(widgetId, R.id.widget_tasks_list_view)

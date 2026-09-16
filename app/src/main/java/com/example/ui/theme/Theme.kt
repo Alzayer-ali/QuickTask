@@ -52,10 +52,10 @@ private val StandardLightColorScheme = lightColorScheme(
 // AMOLED Pure Black Color Scheme
 private val AmoledColorScheme = darkColorScheme(
     primary = AmoledPrimary,
-    onPrimary = Color(0xFF1E004A),
+    onPrimary = Color(0xFF000000),
     primaryContainer = AmoledPrimaryContainer,
     onPrimaryContainer = AmoledOnPrimaryContainer,
-    secondary = Color(0xFFA855F7),
+    secondary = Color(0xFFE4E4E7),
     onSecondary = Color(0xFF000000),
     background = AmoledBackground,
     onBackground = AmoledOnSurface,

@@ -121,45 +121,25 @@ object DateTimeUtils {
         val now = System.currentTimeMillis()
         ensureDayBoundsCache(now)
 
-        // Fast path: if the due date is strictly before yesterday, it is definitely overdue
-        if (dueDateMillis < cachedYesterdayStartMillis) return true
-        // Fast path: if the due date is strictly after tomorrow, it is definitely not overdue
-        if (dueDateMillis >= cachedTomorrowStartMillis + 86_400_000L) return false
+        // If the due date is strictly before today, it is definitely overdue
+        if (dueDateMillis < cachedTodayStartMillis) return true
+        // If the due date is tomorrow or later, it is definitely not overdue
+        if (dueDateMillis >= cachedTomorrowStartMillis) return false
 
-        val targetCal = Calendar.getInstance().apply {
-            timeInMillis = dueDateMillis
-            if (hour != null && minute != null) {
-                set(Calendar.HOUR_OF_DAY, hour)
-                set(Calendar.MINUTE, minute)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            } else {
-                set(Calendar.HOUR_OF_DAY, 23)
-                set(Calendar.MINUTE, 59)
-                set(Calendar.SECOND, 59)
-            }
+        // Due today: check specific time if provided
+        return if (hour != null && minute != null) {
+            val dueTimeMillis = cachedTodayStartMillis + (hour * 3600_000L) + (minute * 60_000L)
+            dueTimeMillis < now
+        } else {
+            false
         }
-
-        return targetCal.timeInMillis < now
     }
 
     fun isDueToday(dueDateMillis: Long?): Boolean {
         if (dueDateMillis == null) return false
         val now = System.currentTimeMillis()
         ensureDayBoundsCache(now)
-
-        // Fast path: if dueDateMillis matches start of today or falls within today
-        if (dueDateMillis >= cachedTodayStartMillis && dueDateMillis < cachedTomorrowStartMillis) {
-            return true
-        }
-        // Fast path: if it's far from today (more than 48 hours away), definitely not today
-        if (dueDateMillis < cachedYesterdayStartMillis || dueDateMillis >= cachedTomorrowStartMillis + 86_400_000L) {
-            return false
-        }
-
-        val targetCal = Calendar.getInstance().apply { timeInMillis = dueDateMillis }
-        val nowCal = Calendar.getInstance().apply { timeInMillis = now }
-        return isSameDay(targetCal, nowCal)
+        return dueDateMillis >= cachedTodayStartMillis && dueDateMillis < cachedTomorrowStartMillis
     }
 
     fun isToday(dueDateMillis: Long): Boolean = isDueToday(dueDateMillis)
@@ -167,63 +147,26 @@ object DateTimeUtils {
     fun isTomorrow(dueDateMillis: Long): Boolean {
         val now = System.currentTimeMillis()
         ensureDayBoundsCache(now)
-
         val dayAfterTomorrow = cachedTomorrowStartMillis + 86_400_000L
-        if (dueDateMillis >= cachedTomorrowStartMillis && dueDateMillis < dayAfterTomorrow) {
-            return true
-        }
-        if (dueDateMillis < cachedTodayStartMillis || dueDateMillis >= dayAfterTomorrow + 86_400_000L) {
-            return false
-        }
-
-        val targetCal = Calendar.getInstance().apply { timeInMillis = dueDateMillis }
-        val tomCal = Calendar.getInstance().apply {
-            timeInMillis = now
-            add(Calendar.DAY_OF_YEAR, 1)
-        }
-        return isSameDay(targetCal, tomCal)
+        return dueDateMillis >= cachedTomorrowStartMillis && dueDateMillis < dayAfterTomorrow
     }
 
     fun isYesterday(dueDateMillis: Long): Boolean {
         val now = System.currentTimeMillis()
         ensureDayBoundsCache(now)
-
-        if (dueDateMillis >= cachedYesterdayStartMillis && dueDateMillis < cachedTodayStartMillis) {
-            return true
-        }
-        if (dueDateMillis < cachedYesterdayStartMillis - 86_400_000L || dueDateMillis >= cachedTodayStartMillis) {
-            return false
-        }
-
-        val targetCal = Calendar.getInstance().apply { timeInMillis = dueDateMillis }
-        val yestCal = Calendar.getInstance().apply {
-            timeInMillis = now
-            add(Calendar.DAY_OF_YEAR, -1)
-        }
-        return isSameDay(targetCal, yestCal)
+        return dueDateMillis >= cachedYesterdayStartMillis && dueDateMillis < cachedTodayStartMillis
     }
 
     fun isUpcoming(dueDateMillis: Long?): Boolean {
         if (dueDateMillis == null) return false
         val now = System.currentTimeMillis()
         ensureDayBoundsCache(now)
-
-        if (dueDateMillis >= cachedTodayStartMillis) return true
-        if (dueDateMillis < cachedYesterdayStartMillis) return false
-
-        val targetCal = Calendar.getInstance().apply { timeInMillis = dueDateMillis }
-        val nowCal = Calendar.getInstance().apply {
-            timeInMillis = now
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-        return targetCal.timeInMillis >= nowCal.timeInMillis
+        return dueDateMillis >= cachedTodayStartMillis
     }
 
     private fun isSameDay(cal1: Calendar, cal2: Calendar): Boolean {
         return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                cal1.get(Calendar.DAY_OF_WEEK_IN_MONTH) == cal2.get(Calendar.DAY_OF_WEEK_IN_MONTH) &&
                 cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
     }
 

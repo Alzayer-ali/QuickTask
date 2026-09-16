@@ -25,17 +25,17 @@ val MinimalDarkOutline = Color(0xFF49454F)
 val MinimalDarkOnSurface = Color(0xFFE6E0E9)
 val MinimalDarkOnSurfaceVariant = Color(0xFFCAC4D0)
 
-// AMOLED Pure Black Colors
+// AMOLED Pure Black Colors (Monochrome Pure Black, White, and Grayscale)
 val AmoledBackground = Color(0xFF000000)
 val AmoledSurface = Color(0xFF0C0C0E)
-val AmoledSurfaceVariant = Color(0xFF16161A)
-val AmoledCardBorder = Color(0xFF24242A)
-val AmoledOutline = Color(0xFF3A3A44)
+val AmoledSurfaceVariant = Color(0xFF18181B)
+val AmoledCardBorder = Color(0xFF27272A)
+val AmoledOutline = Color(0xFF3F3F46)
 val AmoledOnSurface = Color(0xFFFFFFFF)
 val AmoledOnSurfaceVariant = Color(0xFFA1A1AA)
-val AmoledPrimary = Color(0xFFC084FC) // Vibrant Violet
-val AmoledPrimaryContainer = Color(0xFF3B0764)
-val AmoledOnPrimaryContainer = Color(0xFFF3E8FF)
+val AmoledPrimary = Color(0xFFFFFFFF) // Crisp Pure White
+val AmoledPrimaryContainer = Color(0xFF27272A) // Dark Gray (Zinc 800)
+val AmoledOnPrimaryContainer = Color(0xFFF4F4F5) // Off-White (Zinc 100)
 
 // Midnight Blue Colors
 val MidnightPrimary = Color(0xFF38BDF8) // Sky Blue
