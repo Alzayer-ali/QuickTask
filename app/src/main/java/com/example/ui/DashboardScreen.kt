@@ -76,8 +76,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.R
 import com.example.data.TaskEntity
 import com.example.notification.TaskNotificationManager
-import com.example.ui.theme.PurpleFabContainer
-import com.example.ui.theme.PurpleOnPrimaryContainer
 import kotlinx.coroutines.launch
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -168,8 +166,8 @@ fun DashboardScreen(
             FloatingActionButton(
                 onClick = { showAddDialog = true },
                 shape = RoundedCornerShape(20.dp),
-                containerColor = PurpleFabContainer,
-                contentColor = PurpleOnPrimaryContainer,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.testTag("fab_add_task")
             ) {
                 Row(

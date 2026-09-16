@@ -119,8 +119,8 @@ class DeviceCalendarSyncManager(private val context: Context) {
                 }
                 endCal.timeInMillis
             } else {
-                // Default event duration: 30 minutes
-                startTime + (30 * 60 * 1000L)
+                // When no end time is specified, set end time equal to start time (no duration / point-in-time)
+                startTime
             }
             return Pair(startTime, endTime)
         } else {
